@@ -10,4 +10,4 @@ services:
       - /app/node_modules  # Prevents overwriting node_modules on bind mount
     environment:
       - NODE_ENV=development
-    command: npm run dev
+    command: sh -c "npm install && npm run dev"
