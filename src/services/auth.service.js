@@ -1,40 +1,33 @@
-// In-memory store for demonstration purposes
-const users = [];
-let userIdCounter = 1;
+const userRepository = require('../repositories/user.repository');
+const hashPassword = require('../utils/hashPassword');
 
-// @desc    Register a new user (simulated)
+// @desc    Register a new user using the repository
 // @param   userData - Object containing email and password
 async function registerUser(userData) {
-    const { email, password } = userData;
+  const { email, password } = userData;
 
-  
-    const existingUser = users.find(user => user.email === email);
-    if (existingUser) {
-     
-        throw new Error('Email already exists');
-    }
+  // Check if user already exists
+  const existingUser = await userRepository.findUser({ email }, ['userId']);
+  if (existingUser) {
+    throw new Error('Email already exists');
+  }
 
-    console.log(`Simulating hashing for password: ${password}`);
-    const hashedPassword = `hashed_${password}`;
+  // Securely hash the password
+  const hashedPassword = await hashPassword(password);
 
-    const newUser = {
-        id: userIdCounter++,
-        email: email,
-        password: hashedPassword, // Store the hashed password
-    };
+  // Save user using the repository
+  const newUser = await userRepository.createUser({
+    email,
+    password: hashedPassword,
+  });
 
-    // Simulate saving the user to the database
-    users.push(newUser);
-    console.log('Current users in memory:', users);
-
-    // Return some data about the created user (excluding sensitive info like password)
-    return {
-        id: newUser.id,
-        email: newUser.email,
-        message: 'User created successfully (simulated)'
-    };
+  return {
+    userId: newUser.userId,
+    email: newUser.email,
+    message: 'User created successfully',
+  };
 }
 
 module.exports = {
-    registerUser,
-}; 
+  registerUser,
+};
