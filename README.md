@@ -47,6 +47,48 @@ chatflow/
 └── README.md # Project documentation 
 ``` 
 
+## Application Architecture
+
+The application follows a layered architectural pattern to ensure separation of concerns and maintainability. The typical request lifecycle is as follows:
+
+1.  **Route (`src/api/routes/`)**: Defines the API endpoints and HTTP methods. It receives the incoming request.
+2.  **Middleware (`src/middlewares/` & `src/utils/validators.js`)**: Functions that process the request before it reaches the controller. This includes:
+    *   Input validation (e.g., using Joi).
+    *   Authentication and authorization checks (to be added).
+    *   Logging, error handling, etc.
+3.  **Controller (`src/api/controllers/`)**: Receives the validated request from the middleware. It parses the request (body, params, query), calls the appropriate service layer function to handle the business logic, and then formats and sends the HTTP response (data or error) back to the client.
+4.  **Service (`src/services/`)**: Contains the core business logic of the application. It orchestrates operations, performs calculations, and interacts with the repository layer for data access. It's kept independent of the HTTP layer.
+5.  **Repository (`src/repositories/`)**: Abstracts the data access logic. It's responsible for all direct interactions with the database (e.g., querying, creating, updating, deleting records). This layer allows the service layer to be independent of the specific database technology or ORM being used.
+6.  **Database**: The persistent storage for the application. (Currently in-memory for `UserRepository`, with plans for PostgreSQL).
+
+Here's a visual representation using a Mermaid diagram:
+
+```mermaid
+graph LR
+    subgraph "Client Interaction"
+        A[Client Request]
+        H[Client Response]
+    end
+    subgraph "Application Core"
+        B(Route)
+        C(Middleware)
+        D{Controller}
+        E[Service]
+        F[Repository]
+    end
+    subgraph "Data Layer"
+        G[(Database)]
+    end
+    A --> B;
+    B --> C;
+    C --> D;
+    D --> E;
+    E --> F;
+    F --> G;
+    D --> H; // Controller sends response back to client
+```
+This diagram shows the request flowing from the client to the Route, through Middleware to the Controller. The Controller uses the Service, which in turn uses the Repository to interact with the Database. The Controller then sends a response back to the Client.
+
 ## 🚀 Node.js Backend Starter (Docker Dev Setup)
 
 This is a Node.js backend project set up for local development using Docker and Docker Compose.
