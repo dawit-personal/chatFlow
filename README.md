@@ -63,30 +63,8 @@ The application follows a layered architectural pattern to ensure separation of 
 
 Here's a visual representation using a Mermaid diagram:
 
-```mermaid
-graph LR
-    subgraph "Client Interaction"
-        A[Client Request]
-        H[Client Response]
-    end
-    subgraph "Application Core"
-        B(Route)
-        C(Middleware)
-        D{Controller}
-        E[Service]
-        F[Repository]
-    end
-    subgraph "Data Layer"
-        G[(Database)]
-    end
-    A --> B;
-    B --> C;
-    C --> D;
-    D --> E;
-    E --> F;
-    F --> G;
-    D --> H; // Controller sends response back to client
-```
+![Architecture Diagram](./docs/architecture.png)
+
 This diagram shows the request flowing from the client to the Route, through Middleware to the Controller. The Controller uses the Service, which in turn uses the Repository to interact with the Database. The Controller then sends a response back to the Client.
 
 ## 🚀 Node.js Backend Starter (Docker Dev Setup)
