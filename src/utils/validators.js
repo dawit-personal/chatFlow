@@ -1,5 +1,3 @@
-const Joi = require('joi');
-
 // Generic validation middleware
 const validate = (schema) => (req, res, next) => {
     const { error } = schema.validate(req.body, { abortEarly: false }); // abortEarly: false to get all errors
