@@ -1,4 +1,4 @@
-## Project Overview
+## Project Structure 
 
 This project is structured to support a scalable Node.js backend application. Key features of the structure include:
 
@@ -8,3 +8,32 @@ This project is structured to support a scalable Node.js backend application. Ke
 *   **Modularity:** Distinct directories for `middlewares`, `sockets`, `db` (for database related files like migrations/seeds), and `tests` promote modular design.
 
 Further details on specific components can be found within their respective directories or documentation.
+
+## 🚀 Node.js Backend Starter (Docker Dev Setup)
+
+This is a Node.js backend project set up for local development using Docker and Docker Compose.
+
+### 📦 Requirements
+
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [Docker Compose](https://docs.docker.com/compose/)
+## 🛠️ Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone git@github.com:dawit-personal/chatFlow.git
+cd chatFlow
+```
+
+### 2. Create a .env File
+```env
+MY_PORT=3000
+NODE_ENV=development
+```
+
+### 3. Start the App with Docker Compose
+
+```
+docker compose up
+```
