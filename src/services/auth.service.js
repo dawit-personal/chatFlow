@@ -1,7 +1,10 @@
 const userRepository = require('../repositories/user.repository');
 const hashPassword = require('../utils/hashPassword');
 const comparePassword = require('../utils/comparePassword'); 
-const generateToken = require('../utils/generateToken'); 
+const {generateToken} = require('../utils/generateToken'); 
+const userLoginRepository = require('../repositories/userLogin.repository');
+const jwt = require('jsonwebtoken');
+
 // @desc    Register a new user using the repository
 // @param   userData - Object containing email and password
 async function registerUser(userData) {
@@ -31,7 +34,7 @@ async function registerUser(userData) {
 
 // @desc    Authenticate user and return JWT
 // @param   credentials - Object containing email and password
-async function loginUser(credentials) {
+async function loginUser(credentials, ipAddress, userAgent) {
   const { email, password } = credentials;
 
   const user = await userRepository.findUser({ email }, ['userId', 'email', 'password']);
@@ -45,11 +48,23 @@ async function loginUser(credentials) {
     throw new Error('Invalid email or password');
   }
 
-  //const token = generateToken({ userId: user.userId, email: user.email });
+  const token = generateToken({ userId: user.userId, email: user.email });
+
+  const decoded = jwt.decode(token);
+  const expiresAt = new Date(decoded.exp * 1000);
+
+  const userLogin = await userLoginRepository.createLogin({
+    userId: user.userId,
+    token,
+    status: 'active',
+    ipAddress,
+    userAgent,
+    expiresAt
+  });
 
   return {
     email: user.email,
-    //token,
+    token,
   };
 }
 
