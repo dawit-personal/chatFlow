@@ -1,4 +1,4 @@
-.PHONY: up build down migrate-up migrate-down logs logs-top100 fresh-db
+.PHONY: up build down migrate-up migrate-down logs logs-top100 test fresh-db
 
 # Default target: bring up the services and build if necessary
 # Usage: make up
@@ -30,6 +30,13 @@ migrate-down:
 	@echo "Rolling back the last database migration..."
 	docker compose exec app npx sequelize-cli db:migrate:undo
 	@echo "Migration rollback completed."
+
+# Run application tests
+# Usage: make test
+test:
+	@echo "Running application tests..."
+	docker compose exec app npm test
+	@echo "Tests completed."
 
 # View logs for the app service (and other services if specified), follows new logs.
 # Usage: make logs

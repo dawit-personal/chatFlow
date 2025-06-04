@@ -21,7 +21,7 @@ This project is structured to support a scalable Node.js backend application. Ke
 
 * Containerization: Docker + Docker Compose
 
-* Testing (planned): Jest / Supertest
+* Testing: Jest / Mock
 
 * Realtime (planned): Socket.IO
 
@@ -30,21 +30,28 @@ This project is structured to support a scalable Node.js backend application. Ke
 ``` 
 chatflow/
 ├── src/
-│ ├── api/
-│ │ ├── controllers/ # Route handlers (e.g., auth.controller.js)
-│ │ └── routes/ # Express route definitions (e.g., auth.routes.js)
-│ ├── services/ # Business logic (e.g., auth.service.js)
-│ ├── repositories/ # Data access (e.g., user.repository.js)
-│ ├── middlewares/ # Custom middleware (e.g., validation middleware)
-│ └── utils/ # Helpers (e.g., password hashing)
+│   ├── api/
+│   │   ├── controllers/    # Route handlers (e.g., auth.controller.js)
+│   │   └── routes/         # Express route definitions (e.g., auth.routes.js)
+│   ├── services/           # Business logic (e.g., auth.service.js)
+│   ├── repositories/       # Data access (e.g., user.repository.js)
+│   ├── middlewares/        # Custom middleware (e.g., validation middleware)
+│   └── utils/              # Helpers (e.g., password hashing)
 ├── db/
-│ ├── models/ # Sequelize models
-│ └── migrations/ # Sequelize migrations
-├── config/ # Sequelize config (config.json)
-├── Dockerfile # App container definition
-├── docker-compose.yml # Multi-container orchestration
-├── .env # Environment variables
-└── README.md # Project documentation 
+│   ├── models/             # Sequelize models
+│   └── migrations/         # Sequelize migrations
+├── config/                 # Sequelize config (config.json)
+├── tests/                  # Test suites (unit, integration, common helpers)
+│   └── unit/
+│       ├── common/         # Shared mocks, helpers for unit tests
+│       ├── controller/     # Tests for Express controllers (e.g., auth.controller.test.js)
+│       ├── service/        # Tests for business logic (e.g., auth.service.test.js)
+│       └── validation/     # Tests for request schema validation (e.g., auth.validation.test.js)
+├── Dockerfile              # App container definition
+├── docker-compose.yml      # Multi-container orchestration
+├── .env                    # Environment variables
+└── README.md               # Project documentation
+
 ``` 
 
 ## Application Architecture
@@ -107,3 +114,42 @@ This will
 ## API Usage
 
 * Register: POST /auth/register
+
+## Unit test 
+
+The app uses Jest for unit testing. Service and controller dependencies are mocked using jest.fn() or jest.mock() to ensure isolated testing of each component.
+
+### 📁 Test Folder Structure
+```
+tests/
+└── unit/
+    ├── common/         # Shared test utilities, mocks, and helpers for unit tests
+    ├── controller/     # Tests for Express controllers (e.g., auth.controller.test.js)
+    ├── service/        # Tests for business logic (e.g., auth.service.test.js)
+    └── validation/     # Tests for request schema validation (e.g., auth.validation.test.js)
+
+
+```
+
+### ▶️ How to Run the Tests
+
+```
+make test
+```
+This will:
+
+* Run all Jest test files inside the Docker container.
+* Use mocks to isolate controller and service tests.
+* Show success/failure with detailed error output.
+
+To run a specific test file:
+
+```
+docker compose exec app npx jest tests/unit/controller/auth.controller.test.js
+```
+
+## Command
+
+* `make up` – Build and start the application using Docker
+* `make down` – Stop and remove Docker containers
+* `make test` – Run unit tests inside the Docker container
