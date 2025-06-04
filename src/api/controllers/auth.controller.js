@@ -6,12 +6,8 @@ const authService = require('../../services/auth.service');
 async function register(req, res, next) {
     const { email, password, confirmPassword } = req.body;
 
-
-
     try {
         const result = await authService.registerUser({ email, password });
-
-
         return res.status(201).json({
             message: 'User registered successfully',
             email: result.email
@@ -29,6 +25,31 @@ async function register(req, res, next) {
     }
 }
 
+// @desc    Login user
+// @route   POST /auth/login
+// @access  Public
+async function login(req, res, next) {
+    const { email, password } = req.body;
+
+    try {
+        const result = await authService.loginUser({ email, password });
+        return res.status(200).json({
+            message: 'Login successful',
+            token: result.token, // Assuming service returns a token
+            email: result.email
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+
+        if (error.message === 'Invalid email or password') {
+            return res.status(401).json({ message: error.message });
+        }
+
+        return res.status(500).json({ message: 'Server error during login.' });
+    }
+}
+
 module.exports = {
     register,
+    login,
 }; 

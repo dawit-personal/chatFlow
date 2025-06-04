@@ -1,4 +1,4 @@
-const { registerSchema } = require('../../../src/middlewares/validation/registerValidation');
+const { registerSchema } = require('../../../src/middlewares/validation/auth.validation');
 
 describe('Register Validation Schema', () => {
   const validInput = {

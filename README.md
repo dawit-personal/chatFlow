@@ -153,3 +153,6 @@ docker compose exec app npx jest tests/unit/controller/auth.controller.test.js
 * `make up` – Build and start the application using Docker
 * `make down` – Stop and remove Docker containers
 * `make test` – Run unit tests inside the Docker container
+* `migrate-up` – Run database migrations up
+* `migrate-down` – Roll back the last database migration
+* `npx sequelize-cli migration:generate --name your_migration_name` – to create a new Sequelize migration with a timestamped filename:

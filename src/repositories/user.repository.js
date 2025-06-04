@@ -31,6 +31,7 @@ class UserRepository {
     return await User.findOne({
       where,
       attributes: attributes || null,
+      raw: true, 
     });
   }
 }
