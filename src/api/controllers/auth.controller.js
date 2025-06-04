@@ -4,10 +4,10 @@ const authService = require('../../services/auth.service');
 // @route   POST /auth/register
 // @access  Public
 async function register(req, res, next) {
-    const { email, password, confirmPassword } = req.body;
+    const { email, password, firstName, lastName, profilePicture } = req.body;
 
     try {
-        const result = await authService.registerUser({ email, password });
+        const result = await authService.registerUser({ email, password, firstName, lastName, profilePicture });
         return res.status(201).json({
             message: 'User registered successfully',
             email: result.email

@@ -3,12 +3,13 @@ const hashPassword = require('../utils/hashPassword');
 const comparePassword = require('../utils/comparePassword'); 
 const {generateToken} = require('../utils/generateToken'); 
 const userLoginRepository = require('../repositories/userLogin.repository');
+const userProfileRepository = require('../repositories/userProfile.repository');
 const jwt = require('jsonwebtoken');
 
 // @desc    Register a new user using the repository
 // @param   userData - Object containing email and password
 async function registerUser(userData) {
-  const { email, password } = userData;
+  const { email, password, firstName, lastName, profilePicture } = userData;
 
   // Check if user already exists
   const existingUser = await userRepository.findUser({ email }, ['userId']);
@@ -25,9 +26,19 @@ async function registerUser(userData) {
     password: hashedPassword,
   });
 
+  const userProfile = await userProfileRepository.createUserProfile({
+    userId: newUser.userId,
+    firstName,
+    lastName,
+    profilePicture
+  });
+
   return {
     userId: newUser.userId,
     email: newUser.email,
+    firstName: userProfile.firstName,
+    lastName: userProfile.lastName,
+    profilePicture: userProfile.profilePicture,
     message: 'User created successfully',
   };
 }
