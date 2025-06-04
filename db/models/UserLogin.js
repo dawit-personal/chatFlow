@@ -61,7 +61,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'UserLogin',
       tableName: 'UserLogins',
-      timestamps: true,     // Enable automatic createdAt and updatedAt
+      timestamps: true,    
       underscored: false,
     }
   );

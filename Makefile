@@ -58,7 +58,13 @@ logs-top100:
 	@echo "Showing last 100 log lines..."
 	docker compose logs --tail="100" $(SERVICE)
 
-
+# Generate a repository class file for the given model name.
+# Usage: make repository MODEL=UserProfile
+# This runs a Node.js script that creates the repository file (e.g., userProfile.repository.js)
+# inside the repositories directory with basic CRUD methods scaffolded.
+repository:
+	@echo "Generating repository for model: $(MODEL)..."
+	node tools/createRepository.js $(MODEL)
 
 # To make `make logs` and `make logs-top100` work without specifying SERVICE, define a default
 SERVICE := app 
