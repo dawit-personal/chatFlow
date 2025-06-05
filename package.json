@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "prepare": "echo 'husky installed manually'"
+    "test:all": "npm --prefix backend test && npm --prefix frontend test",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
