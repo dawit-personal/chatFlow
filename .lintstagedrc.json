@@ -1,3 +1,10 @@
 {
-    "**/*.{js,ts}": "cross-env NODE_ENV=test jest --findRelatedTests --passWithNoTests"
+    "ignore": ["**/node_modules/**", "**/dist/**", "**/build/**"],
+    "**/*.{js,ts}": [
+      "cross-env NODE_ENV=test jest --findRelatedTests --passWithNoTests"
+    ],
+    "**/*.{json,md}": [
+      "prettier --log-level warn --write"
+    ]
 }
+  
