@@ -96,6 +96,7 @@ const Register = () => {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
+        confirmPassword: data.confirmPassword,
       });
       
       if (response.status === 201 || response.status === 200) {

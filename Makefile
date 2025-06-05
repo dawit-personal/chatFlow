@@ -78,38 +78,16 @@ docker-npm-install:
 
 
 # Usage:
-# Makefile for common git commands
-#
-# Usage:
-#   make commit m="your commit message"
-#
-# Example:
-#   make commit m="fix: add CORS middleware for frontend requests"
-#
-# This will:
-#   1. Check if a commit message (-m) is provided, else exit with error.
-#   2. Prompt you if you want to add a detailed multiline description.
-#      - If yes, enter the description (finish input with Ctrl+D).
-#      - If no, it will use only the commit message.
-#   3. Add all changes (git add .)
-#   4. Commit them with the full commit message.
-#   5. Enable Husky debugging via HUSKY_DEBUG=1 environment variable.
-
+#  make commit m="commit message" [d="detailed description"]
 commit:
 	@if [ -z "$(m)" ]; then \
-		echo "❌ Error: Please provide a commit message using make commit m=\"your message\""; \
+		echo "❌ Please provide commit message: make commit m=\"message\""; \
 		exit 1; \
 	fi; \
-	echo "Do you want to add a detailed description to the commit message? (y/n)"; \
-	read add_desc; \
-	if [ "$$add_desc" = "y" ] || [ "$$add_desc" = "Y" ]; then \
-		echo "Enter your detailed description (end with Ctrl+D):"; \
-		desc=$$(cat); \
-		full_msg="$(m)$$'\n\n'$$desc"; \
-	else \
-		full_msg="$(m)"; \
-	fi; \
-	HUSKY_DEBUG=1 git add . && git commit -m "$$full_msg"
+	printf "%s\n" "$(m)" > /tmp/commitmsg.txt; \
+	HUSKY_DEBUG=1 git commit -F /tmp/commitmsg.txt; \
+	rm /tmp/commitmsg.txt
+
 
 
 # To make `make logs` and `make logs-top100` work without specifying SERVICE, define a default
