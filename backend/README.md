@@ -187,6 +187,10 @@ Without Husky, you can accidentally commit broken, unformatted, or untested code
 
 ### Usage
 
+```
+HUSKY_DEBUG=1 git commit -m "feat: update test"
+```
+
 Just commit your code — Husky will automatically verify your changes by running unit tests on staged files.
 If any existing test case breaks or a test related to your changes fails, the commit will be blocked. This ensures broken code doesn't enter the repository.
 
