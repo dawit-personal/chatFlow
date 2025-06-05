@@ -1,10 +1,7 @@
 {
-    "ignore": ["**/node_modules/**", "**/dist/**", "**/build/**"],
-    "**/*.{js,ts}": [
-      "cross-env NODE_ENV=test jest --findRelatedTests --passWithNoTests"
-    ],
-    "**/*.{json,md}": [
-      "prettier --log-level warn --write"
-    ]
+  "ignore": ["**/node_modules/**", "**/dist/**", "**/build/**"],
+  "backend/**/*.{js,ts}": [
+    "cd backend && cross-env NODE_ENV=test npx jest --findRelatedTests --passWithNoTests"
+  ],
+  "**/*.{json,md}": ["prettier --log-level warn --write"]
 }
-  
