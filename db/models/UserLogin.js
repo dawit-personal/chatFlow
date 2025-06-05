@@ -34,9 +34,14 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 'active',
         allowNull: false,
       },
-      token: {
+      accessToken: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
+        unique: true,
+      },
+      refreshToken: {
+        type: DataTypes.TEXT,
+        allowNull: true,
         unique: true,
       },
       ipAddress: {
