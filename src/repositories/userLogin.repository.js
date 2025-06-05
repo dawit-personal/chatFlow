@@ -1,8 +1,8 @@
 const { UserLogin } = require('../../db/models');
 
 class UserLoginRepository {
-  async createLogin(data) {
-    return await UserLogin.create(data);
+  async createLogin(data, options = {}) {
+    return await UserLogin.create(data, options);
   }
 
   async getLoginById(id) {
@@ -13,14 +13,14 @@ class UserLoginRepository {
     return await UserLogin.findAll();
   }
 
-  async updateLogin(id, updates) {
+  async updateLogin(id, updates, options = {}) {
     const login = await UserLogin.findByPk(id);
     if (!login) return null;
-    return await login.update(updates);
+    return await login.update(updates, options);
   }
 
-  async deleteLogin(id) {
-    return await UserLogin.destroy({ where: { id } });
+  async deleteLogin(id, options = {}) {
+    return await UserLogin.destroy({ where: { id }, ...options });
   }
 
   async findLogin(where = {}, attributes = null) {

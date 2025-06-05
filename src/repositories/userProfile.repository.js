@@ -1,8 +1,8 @@
 const { UserProfile } = require('../../db/models');
 
 class UserProfileRepository {
-  async createUserProfile(data) {
-    return await UserProfile.create(data);
+  async createUserProfile(data, options = {}) {
+    return await UserProfile.create(data, options);
   }
 
   async getUserProfileById(id) {
@@ -13,14 +13,14 @@ class UserProfileRepository {
     return await UserProfile.findAll();
   }
 
-  async updateUserProfile(id, updates) {
+  async updateUserProfile(id, updates, options = {}) {
     const item = await UserProfile.findByPk(id);
     if (!item) return null;
-    return await item.update(updates);
+    return await item.update(updates, options);
   }
 
-  async deleteUserProfile(id) {
-    return await UserProfile.destroy({ where: { id } });
+  async deleteUserProfile(id, options = {}) {
+    return await UserProfile.destroy({ where: { id }, ...options });
   }
 
   async countUserProfiles() {

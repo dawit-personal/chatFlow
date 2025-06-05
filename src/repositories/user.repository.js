@@ -1,8 +1,8 @@
 const { User } = require('../../db/models');
 
 class UserRepository {
-  async createUser(data) {
-    return await User.create(data);
+  async createUser(data, options = {}) {
+    return await User.create(data, options);
   }
 
   async getUserById(userId) {
@@ -13,13 +13,13 @@ class UserRepository {
     return await User.findAll();
   }
 
-  async updateUser(userId, updates) {
+  async updateUser(userId, updates, options = {}) {
     const user = await User.findByPk(userId);
     if (!user) return null;
-    return await user.update(updates);
+    return await user.update(updates, options);
   }
 
-  async deleteUser(userId) {
+  async deleteUser(userId, options = {}) {
     return await User.destroy({ where: { userId } });
   }
 
