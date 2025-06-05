@@ -47,7 +47,7 @@ const registerSchema = Joi.object({
 describe('Register Validation Schema', () => {
   const validInput = {
     email: 'test@example.com',
-    password: 'StrongPass123!',
+    password: 'St',
     confirmPassword: 'StrongPass123!',
     firstName: 'John',
     lastName: 'Doe',
@@ -87,6 +87,8 @@ describe('Register Validation Schema', () => {
 
   test('should fail if password is too short', () => {
     const { error } = registerSchema.validate({ ...validInput, password: 'Short1!' });
+
+    console.log('Validation error:', error);
     expect(error).toBeDefined();
   });
 
