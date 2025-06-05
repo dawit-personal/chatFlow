@@ -1,25 +1,18 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
+  backend:
+    build: ./backend
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT}:4000"
     volumes:
-      - .:/app
-      - /app/node_modules  # Prevents overwriting node_modules on bind mount
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules  # Named volume for node_modules
     depends_on:
       - db
-    environment:
-      - NODE_ENV=development
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_NAME=chatflow
-      - DB_SSL=false
+    env_file:
+      - .env  # Load variables from root .env file
     command: sh -c "npm install && npx sequelize-cli db:migrate && npm run dev"
-
 
   db:
     image: postgres:15
@@ -33,6 +26,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-
 volumes:
   postgres_data:
+  backend_node_modules:  # Named volume for backend node_modules
