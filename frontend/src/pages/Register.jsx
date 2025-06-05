@@ -60,10 +60,10 @@ const Register = () => {
       <Paper
         elevation={12}
         sx={{
-          p: 4,
+          p: 2, // Reduced padding for more field space
           borderRadius: 6,
           width: '100%',
-          maxWidth: '550px', // Adjusted for the vertical layout
+          maxWidth: '600px', // Increased width for better text field display
           // Frosted glass effect with a border
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(12px)',
@@ -71,53 +71,49 @@ const Register = () => {
         }}
       >
         <Box component="form" noValidate sx={{ width: '100%' }}>
-          <Grid container spacing={2}>
-            {/* Login Credentials */}
-            <Grid item xs={12}>
-              <TextField name="email" required fullWidth id="email" label="Email Address" autoComplete="email" autoFocus variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField name="password" required fullWidth id="password" label="Password" type="password" variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField name="confirmPassword" required fullWidth id="confirmPassword" label="Confirm Password" type="password" variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
-            </Grid>
-
-            {/* Divider */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2, borderColor: 'rgba(255, 255, 255, 0.2)' }}>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Personal Information
-                </Typography>
-              </Divider>
-            </Grid>
-
-            {/* Personal Information */}
-            <Grid item xs={12} sm={6}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+            {/* Personal Information First - Best Practice */}
+            <Box sx={{ width: '80%' }}>
               <TextField name="firstName" required fullWidth id="firstName" label="First Name" variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            
+            <Box sx={{ width: '80%' }}>
               <TextField name="lastName" required fullWidth id="lastName" label="Last Name" variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
-            </Grid>
-          </Grid>
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{
-              mt: 3,
-              mb: 2,
-              py: 1.5,
-              backgroundColor: '#8E2DE2',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              '&:hover': {
-                backgroundColor: '#9A4DFF',
-              },
-            }}
-          >
-            Sign Up
-          </Button>
+            </Box>
+            
+            {/* Login Credentials */}
+            <Box sx={{ width: '80%' }}>
+              <TextField name="email" required fullWidth id="email" label="Email Address" autoComplete="email" variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
+            </Box>
+            
+            <Box sx={{ width: '80%' }}>
+              <TextField name="password" required fullWidth id="password" label="Password" type="password" variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
+            </Box>
+            
+            <Box sx={{ width: '80%' }}>
+              <TextField name="confirmPassword" required fullWidth id="confirmPassword" label="Confirm Password" type="password" variant="outlined" InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.9)' } }} sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.5)' }, '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.8)' }, '&.Mui-focused fieldset': { borderColor: 'white' }, '& .MuiInputBase-input': { color: 'white' }, }, }} />
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 2 }}>
+            <Box sx={{ width: '80%' }}>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{
+                  py: 1.5,
+                  backgroundColor: '#8E2DE2',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    backgroundColor: '#9A4DFF',
+                  },
+                }}
+              >
+                Sign Up
+              </Button>
+            </Box>
+          </Box>
           <Grid container justifyContent="flex-end">
             <Grid item>
               <Link href="#" variant="body2" sx={{ color: 'white' }}>
