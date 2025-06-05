@@ -9,7 +9,6 @@ import {
   Avatar,
   CssBaseline,
   Paper,
-  Divider,
   IconButton,
   InputAdornment,
   Alert,
@@ -23,64 +22,37 @@ import * as yup from 'yup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-// Validation schema
+// Validation schema for login
 const validationSchema = yup.object({
-  firstName: yup
-    .string()
-    .required('First name is required')
-    .min(2, 'First name must be at least 2 characters')
-    .max(50, 'First name must not exceed 50 characters'),
-  lastName: yup
-    .string()
-    .required('Last name is required')
-    .min(2, 'Last name must be at least 2 characters')
-    .max(50, 'Last name must not exceed 50 characters'),
   email: yup
     .string()
     .required('Email address is required')
     .email('Please enter a valid email address'),
   password: yup
     .string()
-    .required('Password is required')
-    .min(12, 'Password must be at least 12 characters long')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};"':\\|,.<>\/?]).*$/,
-      'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*)'
-    ),
-  confirmPassword: yup
-    .string()
-    .required('Please confirm your password')
-    .oneOf([yup.ref('password'), null], 'Passwords must match'),
+    .required('Password is required'),
 });
 
-const Register = () => {
+const Login = () => {
   const {
     control,
     handleSubmit,
     formState: { errors, isValid, isDirty },
   } = useForm({
     resolver: yupResolver(validationSchema),
-    mode: 'onChange', // Validate on change for real-time feedback
+    mode: 'onChange',
     defaultValues: {
-      firstName: '',
-      lastName: '',
       email: '',
       password: '',
-      confirmPassword: '',
     },
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handlePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  const handleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const navigate = useNavigate();
@@ -91,19 +63,20 @@ const Register = () => {
     
     try {
       const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
-      const response = await axios.post(`${API_ENDPOINT}/auth/register`, {
-        firstName: data.firstName,
-        lastName: data.lastName,
+      const response = await axios.post(`${API_ENDPOINT}/auth/login`, {
         email: data.email,
         password: data.password,
       });
       
-      if (response.status === 201 || response.status === 200) {
-        navigate('/login');
+      if (response.status === 200) {
+        // Handle successful login (store token, redirect to dashboard, etc.)
+        console.log('Login successful:', response.data);
+        // For now, just redirect to a dashboard or home page
+        navigate('/dashboard');
       }
     } catch (error) {
-      console.error('Registration failed:', error);
-      setError(error.response?.data?.message || 'Registration failed. Please try again.');
+      console.error('Login failed:', error);
+      setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -148,7 +121,7 @@ const Register = () => {
           variant="h4"
           sx={{ fontWeight: 'bold', color: 'white' }}
         >
-          Create your FlowChat account
+          Sign in to FlowChat
         </Typography>
       </Box>
 
@@ -166,80 +139,7 @@ const Register = () => {
       >
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-            <Box sx={{ width: '80%' }}>
-              <Controller
-                name="firstName"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="First Name"
-                    variant="outlined"
-                    error={!!errors.firstName}
-                    helperText={errors.firstName?.message}
-                    InputLabelProps={{ 
-                      style: { color: errors.firstName ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { 
-                          borderColor: errors.firstName ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
-                        },
-                        '&:hover fieldset': { 
-                          borderColor: errors.firstName ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
-                        },
-                        '&.Mui-focused fieldset': { 
-                          borderColor: errors.firstName ? '#f44336' : 'white' 
-                        },
-                        '& .MuiInputBase-input': { color: 'white' },
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: '#f44336',
-                      },
-                    }}
-                  />
-                )}
-              />
-            </Box>
-            
-            <Box sx={{ width: '80%' }}>
-              <Controller
-                name="lastName"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Last Name"
-                    variant="outlined"
-                    error={!!errors.lastName}
-                    helperText={errors.lastName?.message}
-                    InputLabelProps={{ 
-                      style: { color: errors.lastName ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { 
-                          borderColor: errors.lastName ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
-                        },
-                        '&:hover fieldset': { 
-                          borderColor: errors.lastName ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
-                        },
-                        '&.Mui-focused fieldset': { 
-                          borderColor: errors.lastName ? '#f44336' : 'white' 
-                        },
-                        '& .MuiInputBase-input': { color: 'white' },
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: '#f44336',
-                      },
-                    }}
-                  />
-                )}
-              />
-            </Box>
-            
+            {/* Email */}
             <Box sx={{ width: '80%' }}>
               <Controller
                 name="email"
@@ -277,7 +177,8 @@ const Register = () => {
                 )}
               />
             </Box>
-            
+
+            {/* Password */}
             <Box sx={{ width: '80%' }}>
               <Controller
                 name="password"
@@ -334,63 +235,6 @@ const Register = () => {
                 )}
               />
             </Box>
-            
-            <Box sx={{ width: '80%' }}>
-              <Controller
-                name="confirmPassword"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Confirm Password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    variant="outlined"
-                    error={!!errors.confirmPassword}
-                    helperText={errors.confirmPassword?.message}
-                    InputLabelProps={{ 
-                      style: { color: errors.confirmPassword ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { 
-                          borderColor: errors.confirmPassword ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
-                        },
-                        '&:hover fieldset': { 
-                          borderColor: errors.confirmPassword ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
-                        },
-                        '&.Mui-focused fieldset': { 
-                          borderColor: errors.confirmPassword ? '#f44336' : 'white' 
-                        },
-                        '& .MuiInputBase-input': { color: 'white' },
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: '#f44336',
-                      },
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={handleConfirmPasswordVisibility}
-                            edge="end"
-                            sx={{
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              '&:hover': {
-                                color: 'white',
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                              },
-                            }}
-                          >
-                            {showConfirmPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                )}
-              />
-            </Box>
           </Box>
           
           {error && (
@@ -429,7 +273,7 @@ const Register = () => {
                   },
                 }}
               >
-                {loading ? 'Creating Account...' : 'Sign Up'}
+                {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </Box>
           </Box>
@@ -440,9 +284,9 @@ const Register = () => {
                 component="button" 
                 variant="body2" 
                 sx={{ color: 'white', textDecoration: 'none' }}
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/register')}
               >
-                Already have an account? Sign in
+                Don't have an account? Sign up
               </Link>
             </Grid>
           </Grid>
@@ -452,4 +296,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login; 
