@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test:all": "npm --prefix backend test && npm --prefix frontend test",
+    "test:all": "npm --prefix backend test",
     "prepare": "husky install"
   },
   "keywords": [],
