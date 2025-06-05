@@ -7,7 +7,7 @@ const { registerSchema, loginSchema } = require('../../middlewares/validation/au
 // @route   POST /auth/register
 // @desc    Register a new user
 // @access  Public
-router.post('/register', validate(registerSchema), authController.register); // Apply validation middleware
+router.post('/register', validate(registerSchema), authController.register);
 
 // @route   POST /auth/login
 // @desc    Login user and return token

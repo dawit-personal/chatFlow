@@ -179,3 +179,14 @@ To ensure data consistency and reliability, we use database transactions when cr
 * `migrate-down` – Roll back the last database migration
 * `npx sequelize-cli migration:generate --name your_migration_name` – to create a new Sequelize migration with a timestamped filename:
 * `git commit --no-verify -m "feat(db): add centralized transaction handler with retry and post-commit support"` - skip tests in your pre-commit to unblock commits
+
+
+tomorow Plan 
+
+- POSt auth/me end point
+- make it mono repo
+- front page
+- nginx 
+- Socket io 
+- add more unit test 
+- Rabbit mq for profile image upload

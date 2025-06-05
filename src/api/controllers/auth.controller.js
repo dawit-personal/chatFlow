@@ -35,7 +35,7 @@ async function login(req, res, next) {
         const result = await authService.loginUser({ email, password }, req.ip, req.headers['user-agent']);
         return res.status(200).json({
             message: 'Login successful',
-            token: result.token, // Assuming service returns a token
+            accessToken: result.accessToken, // Assuming service returns a token
             email: result.email
         });
     } catch (error) {

@@ -61,14 +61,14 @@ async function loginUser(credentials, ipAddress, userAgent) {
     throw new Error('Invalid email or password');
   }
 
-  const token = generateToken({ userId: user.userId, email: user.email });
+  const accessToken = generateToken({ userId: user.userId, email: user.email });
 
-  const decoded = jwt.decode(token);
+  const decoded = jwt.decode(accessToken);
   const expiresAt = new Date(decoded.exp * 1000);
 
   const userLogin = await userLoginRepository.createLogin({
     userId: user.userId,
-    token,
+    accessToken,
     status: 'active',
     ipAddress,
     userAgent,
@@ -77,7 +77,7 @@ async function loginUser(credentials, ipAddress, userAgent) {
 
   return {
     email: user.email,
-    token,
+    accessToken,
   };
 }
 
