@@ -5,42 +5,44 @@ const {generateToken} = require('../utils/generateToken');
 const userLoginRepository = require('../repositories/userLogin.repository');
 const userProfileRepository = require('../repositories/userProfile.repository');
 const jwt = require('jsonwebtoken');
+const DBService = require('./db.service');
 
 // @desc    Register a new user using the repository
 // @param   userData - Object containing email and password
 async function registerUser(userData) {
   const { email, password, firstName, lastName, profilePicture } = userData;
 
-  // Check if user already exists
-  const existingUser = await userRepository.findUser({ email }, ['userId']);
-  if (existingUser) {
-    throw new Error('Email already exists');
-  }
+  return await DBService.performTransaction(async (transaction) => {
+    // Check if user already exists (no transaction needed here unless you're doing SELECT ... FOR UPDATE)
+    const existingUser = await userRepository.findUser({ email }, ['userId']);
+    if (existingUser) {
+      throw new Error('Email already exists');
+    }
 
-  // Securely hash the password
-  const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(password);
 
-  // Save user using the repository
-  const newUser = await userRepository.createUser({
-    email,
-    password: hashedPassword,
+    // Pass transaction to all operations that write to the DB
+    const newUser = await userRepository.createUser({
+      email,
+      password: hashedPassword,
+    }, { transaction });
+
+    const userProfile = await userProfileRepository.createUserProfile({
+      userId: newUser.userId,
+      firstName,
+      lastName,
+      profilePicture
+    }, { transaction });
+
+    return {
+      userId: newUser.userId,
+      email: newUser.email,
+      firstName: userProfile.firstName,
+      lastName: userProfile.lastName,
+      profilePicture: userProfile.profilePicture,
+      message: 'User created successfully',
+    };
   });
-
-  const userProfile = await userProfileRepository.createUserProfile({
-    userId: newUser.userId,
-    firstName,
-    lastName,
-    profilePicture
-  });
-
-  return {
-    userId: newUser.userId,
-    email: newUser.email,
-    firstName: userProfile.firstName,
-    lastName: userProfile.lastName,
-    profilePicture: userProfile.profilePicture,
-    message: 'User created successfully',
-  };
 }
 
 // @desc    Authenticate user and return JWT

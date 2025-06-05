@@ -17,9 +17,13 @@ const getMockRegisterBody = (overrides = {}) => ({
 });
 
 describe('Auth Controller - register', () => {
+
+  beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {}); // Suppress console.error
+  });
+  
   afterEach(() => {
     jest.clearAllMocks();
-    jest.resetModules();
   });
 
   test('should return 201 and user data when registration is successful', async () => {

@@ -6,9 +6,14 @@ const userProfileRepository = require('../../../src/repositories/userProfile.rep
 const hashPassword = require('../../../src/utils/hashPassword');
 
 describe('registerUser - service', () => {
+
+  // Mock console.error to prevent console logs during tests
+  beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
-    jest.resetModules();
   });
 
   test('should create a new user and user profile successfully', async () => {
@@ -25,14 +30,18 @@ describe('registerUser - service', () => {
     userRepository.createUser.mockResolvedValue({
       userId: 'abc123',
       email: mockEmail,
-    });
+    },
+   
+  );
 
     userProfileRepository.createUserProfile.mockResolvedValue({
       userId: mockUserId,
       firstName: mockFirstName,
       lastName: mockLastName,
       profilePicture: mockProfilePicture,
-    });
+    },
+  
+  );
 
     const result = await authService.registerUser({
       email: mockEmail,
@@ -48,14 +57,18 @@ describe('registerUser - service', () => {
     expect(userRepository.createUser).toHaveBeenCalledWith({
       email: mockEmail,
       password: mockHashedPassword,
-    });
+    },
+    { transaction: expect.any(Object) }
+  );
 
     expect(userProfileRepository.createUserProfile).toHaveBeenCalledWith({
       userId: mockUserId,
       firstName: mockFirstName,
       lastName: mockLastName,
       profilePicture: mockProfilePicture,
-    });
+    },
+    { transaction: expect.any(Object) }
+  );
 
     expect(result).toEqual({
       userId: mockUserId,

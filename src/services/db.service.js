@@ -1,4 +1,4 @@
-import models from '../db/models/index.js'; // Adjusted import path
+const models = require('../../db/models/index.js'); // Adjusted import path
 const { sequelize } = models; // Destructure the sequelize instance from the models export
 
 // Placeholder for loggingService if not defined elsewhere
@@ -8,7 +8,6 @@ const loggingService = {
     console.error(`Error Code: ${code} - ${message}:`, error);
   }
 };
-
 class DBService {
   static async performTransaction(callback, postCommitCallback = null, maxRetries = 3) {
     let attempts = 0;
@@ -50,4 +49,4 @@ class DBService {
   }
 }
 
-export default DBService;
+module.exports = DBService;
