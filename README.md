@@ -13,17 +13,21 @@ This project is structured to support a scalable Node.js backend application. Ke
 
 * Framework: Express.js
 
-* Database: PostgreSQL (via Sequelize ORM)
+* Database: PostgreSQL (managed via Sequelize ORM)
 
-* Authentication: Bcrypt for password hashing
+* Authentication: Bcrypt – for secure password hashing
 
-* Validation: Joi
+* Validation: Joi– for request payload validation
 
-* Containerization: Docker + Docker Compose
+* Containerization: Docker + Docker Compose – for consistent dev and production environments
 
-* Testing: Jest / Mock
+* Testing: Jest (with mocking and unit tests)
 
-* Realtime (planned): Socket.IO
+* Realtime (planned): Socket.IO – for live updates and bi-directional communication
+
+* Code Quality: Husky – pre-commit hooks for linting and test enforcement
+  
+
 
 ## 🗂️ Project Structure
 
@@ -147,6 +151,24 @@ To run a specific test file:
 ```
 docker compose exec app npx jest tests/unit/controller/auth.controller.test.js
 ```
+
+## 🗄️ DB
+
+The system uses Sequelize, a promise-based ORM for Node.js, to manage our PostgreSQL database. Sequelize simplifies database interaction through JavaScript objects and provides built-in support for migrations, model definitions, and associations, promoting maintainable and scalable database code.
+
+All database migrations are run automatically inside the Docker container, ensuring consistent schema setup across all environments (local, staging, production). This setup allows for smooth CI/CD pipelines, reproducible builds, and better environment parity.
+
+Sequelize was chosen for its balance of developer ergonomics, transaction support, and extensibility, making it a great fit for modern Node.js applications.
+
+### ACID compliance
+
+To ensure data consistency and reliability, we use database transactions when creating a new user and their associated profile.
+
+🔄 ACID Principles Enforced by Transactions
+* **Atomicity:** All steps inside the transaction either succeed together or fail together.
+* **Consistency:** The database remains in a valid state before and after the transaction.
+* **Isolation:** The transaction runs independently from others, preventing conflicts.
+* **Durability:** Once committed, the changes persist even after system failure.
 
 ## Command
 
