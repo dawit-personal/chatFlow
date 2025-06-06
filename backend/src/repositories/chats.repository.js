@@ -1,34 +1,34 @@
-const { Chats } = require('../../db/models');
+const { Chat } = require('../../db/models');
 
 class ChatsRepository {
   async createChats(data) {
-    return await Chats.create(data);
+    return await Chat.create(data);
   }
 
   async getChatsById(id) {
-    return await Chats.findByPk(id);
+    return await Chat.findByPk(id);
   }
 
   async getAllChatss() {
-    return await Chats.findAll();
+    return await Chat.findAll();
   }
 
   async updateChats(id, updates) {
-    const item = await Chats.findByPk(id);
+    const item = await Chat.findByPk(id);
     if (!item) return null;
     return await item.update(updates);
   }
 
   async deleteChats(id) {
-    return await Chats.destroy({ where: { id } });
+    return await Chat.destroy({ where: { id } });
   }
 
   async countChatss() {
-    return await Chats.count();
+    return await Chat.count();
   }
 
   async findChats(where = {}, attributes = null) {
-    return await Chats.findOne({
+    return await Chat.findOne({
       where,
       attributes: attributes || null,
       raw: true,
