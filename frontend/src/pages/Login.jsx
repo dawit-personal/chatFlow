@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './authContext';
 import {
   Box,
   Typography,
@@ -34,6 +35,7 @@ const validationSchema = yup.object({
 });
 
 const Login = () => {
+  const { setAccessToken } = useAuth();
   const {
     control,
     handleSubmit,
@@ -86,10 +88,10 @@ const Login = () => {
       });
       
       if (response.status === 200) {
-        console.log('Login successful:', response.data);
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 0);
+       
+        if (data.accessToken) {
+          setAccessToken(data.accessToken);
+        }
         return;
       }
     } catch (error) {
