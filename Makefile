@@ -94,7 +94,14 @@ commit:
 	HUSKY_DEBUG=1 git commit -F /tmp/commitmsg.txt; \
 	rm /tmp/commitmsg.txt
 
+# Makefile
 
+# Usage:
+# Run `make rebase` to fetch and rebase the latest changes from origin/main.
+# This helps keep a clean, linear commit history by avoiding unnecessary merge commits.
+rebase:
+	@echo "Pulling latest changes from origin/main with rebase..."
+	git pull --rebase origin main
 
 # To make `make logs` and `make logs-top100` work without specifying SERVICE, define a default
 SERVICE := backend 
