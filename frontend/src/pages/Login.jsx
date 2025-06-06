@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -22,7 +22,7 @@ import * as yup from 'yup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-// Validation schema for login
+// Validation schema
 const validationSchema = yup.object({
   email: yup
     .string()
@@ -38,9 +38,11 @@ const Login = () => {
     control,
     handleSubmit,
     formState: { errors, isValid, isDirty },
+    clearErrors,
+    reset,
   } = useForm({
     resolver: yupResolver(validationSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: {
       email: '',
       password: '',
@@ -50,6 +52,20 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  useEffect(() => {
+    reset();
+    clearErrors();
+    setError('');
+    setHasInteracted(false);
+  }, [reset, clearErrors]);
+
+  const handleFormInteraction = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
+  };
 
   const handlePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -60,6 +76,7 @@ const Login = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     setError('');
+    clearErrors();
     
     try {
       const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
@@ -69,14 +86,15 @@ const Login = () => {
       });
       
       if (response.status === 200) {
-        // Handle successful login (store token, redirect to dashboard, etc.)
         console.log('Login successful:', response.data);
-        // For now, just redirect to a dashboard or home page
-        navigate('/dashboard');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 0);
+        return;
       }
     } catch (error) {
       console.error('Login failed:', error);
-      setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -139,7 +157,6 @@ const Login = () => {
       >
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
-            {/* Email */}
             <Box sx={{ width: '80%' }}>
               <Controller
                 name="email"
@@ -151,21 +168,22 @@ const Login = () => {
                     label="Email Address"
                     type="email"
                     variant="outlined"
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
+                    onFocus={handleFormInteraction}
+                    error={hasInteracted && !!errors.email}
+                    helperText={hasInteracted && errors.email?.message}
                     InputLabelProps={{ 
-                      style: { color: errors.email ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
+                      style: { color: (hasInteracted && errors.email) ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { 
-                          borderColor: errors.email ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
+                          borderColor: (hasInteracted && errors.email) ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
                         },
                         '&:hover fieldset': { 
-                          borderColor: errors.email ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
+                          borderColor: (hasInteracted && errors.email) ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
                         },
                         '&.Mui-focused fieldset': { 
-                          borderColor: errors.email ? '#f44336' : 'white' 
+                          borderColor: (hasInteracted && errors.email) ? '#f44336' : 'white' 
                         },
                         '& .MuiInputBase-input': { color: 'white' },
                       },
@@ -177,8 +195,7 @@ const Login = () => {
                 )}
               />
             </Box>
-
-            {/* Password */}
+            
             <Box sx={{ width: '80%' }}>
               <Controller
                 name="password"
@@ -190,21 +207,22 @@ const Login = () => {
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
                     variant="outlined"
-                    error={!!errors.password}
-                    helperText={errors.password?.message}
+                    onFocus={handleFormInteraction}
+                    error={hasInteracted && !!errors.password}
+                    helperText={hasInteracted && errors.password?.message}
                     InputLabelProps={{ 
-                      style: { color: errors.password ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
+                      style: { color: (hasInteracted && errors.password) ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { 
-                          borderColor: errors.password ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
+                          borderColor: (hasInteracted && errors.password) ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
                         },
                         '&:hover fieldset': { 
-                          borderColor: errors.password ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
+                          borderColor: (hasInteracted && errors.password) ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
                         },
                         '&.Mui-focused fieldset': { 
-                          borderColor: errors.password ? '#f44336' : 'white' 
+                          borderColor: (hasInteracted && errors.password) ? '#f44336' : 'white' 
                         },
                         '& .MuiInputBase-input': { color: 'white' },
                       },

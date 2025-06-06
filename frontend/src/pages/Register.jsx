@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -44,7 +44,7 @@ const validationSchema = yup.object({
     .required('Password is required')
     .min(12, 'Password must be at least 12 characters long')
     .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};"':\\|,.<>\/?]).*$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};"':\\|,.<>/?]).*$/,
       'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*)'
     ),
   confirmPassword: yup
@@ -58,9 +58,11 @@ const Register = () => {
     control,
     handleSubmit,
     formState: { errors, isValid, isDirty },
+    clearErrors,
+    reset,
   } = useForm({
     resolver: yupResolver(validationSchema),
-    mode: 'onChange', // Validate on change for real-time feedback
+    mode: 'onTouched',
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -74,6 +76,22 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  // Reset form state when component mounts to prevent validation errors from persisting
+  useEffect(() => {
+    reset();
+    clearErrors();
+    setError('');
+    setHasInteracted(false);
+  }, [reset, clearErrors]);
+
+  // Handle form interaction to enable validation after first touch
+  const handleFormInteraction = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
+  };
 
   const handlePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -88,6 +106,7 @@ const Register = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     setError('');
+    clearErrors(); // Clear form validation errors before submission
     
     try {
       const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
@@ -100,7 +119,11 @@ const Register = () => {
       });
       
       if (response.status === 201 || response.status === 200) {
-        navigate('/login');
+        // Use setTimeout to ensure clean redirect without validation flash
+        setTimeout(() => {
+          navigate('/login');
+        }, 0);
+        return;
       }
     } catch (error) {
       console.error('Registration failed:', error);
@@ -177,21 +200,22 @@ const Register = () => {
                     fullWidth
                     label="First Name"
                     variant="outlined"
-                    error={!!errors.firstName}
-                    helperText={errors.firstName?.message}
+                    onFocus={handleFormInteraction}
+                    error={hasInteracted && !!errors.firstName}
+                    helperText={hasInteracted && errors.firstName?.message}
                     InputLabelProps={{ 
-                      style: { color: errors.firstName ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
+                      style: { color: (hasInteracted && errors.firstName) ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { 
-                          borderColor: errors.firstName ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
+                          borderColor: (hasInteracted && errors.firstName) ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
                         },
                         '&:hover fieldset': { 
-                          borderColor: errors.firstName ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
+                          borderColor: (hasInteracted && errors.firstName) ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
                         },
                         '&.Mui-focused fieldset': { 
-                          borderColor: errors.firstName ? '#f44336' : 'white' 
+                          borderColor: (hasInteracted && errors.firstName) ? '#f44336' : 'white' 
                         },
                         '& .MuiInputBase-input': { color: 'white' },
                       },
@@ -214,21 +238,22 @@ const Register = () => {
                     fullWidth
                     label="Last Name"
                     variant="outlined"
-                    error={!!errors.lastName}
-                    helperText={errors.lastName?.message}
+                    onFocus={handleFormInteraction}
+                    error={hasInteracted && !!errors.lastName}
+                    helperText={hasInteracted && errors.lastName?.message}
                     InputLabelProps={{ 
-                      style: { color: errors.lastName ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
+                      style: { color: (hasInteracted && errors.lastName) ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { 
-                          borderColor: errors.lastName ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
+                          borderColor: (hasInteracted && errors.lastName) ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
                         },
                         '&:hover fieldset': { 
-                          borderColor: errors.lastName ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
+                          borderColor: (hasInteracted && errors.lastName) ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
                         },
                         '&.Mui-focused fieldset': { 
-                          borderColor: errors.lastName ? '#f44336' : 'white' 
+                          borderColor: (hasInteracted && errors.lastName) ? '#f44336' : 'white' 
                         },
                         '& .MuiInputBase-input': { color: 'white' },
                       },
@@ -252,21 +277,22 @@ const Register = () => {
                     label="Email Address"
                     type="email"
                     variant="outlined"
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
+                    onFocus={handleFormInteraction}
+                    error={hasInteracted && !!errors.email}
+                    helperText={hasInteracted && errors.email?.message}
                     InputLabelProps={{ 
-                      style: { color: errors.email ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
+                      style: { color: (hasInteracted && errors.email) ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { 
-                          borderColor: errors.email ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
+                          borderColor: (hasInteracted && errors.email) ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
                         },
                         '&:hover fieldset': { 
-                          borderColor: errors.email ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
+                          borderColor: (hasInteracted && errors.email) ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
                         },
                         '&.Mui-focused fieldset': { 
-                          borderColor: errors.email ? '#f44336' : 'white' 
+                          borderColor: (hasInteracted && errors.email) ? '#f44336' : 'white' 
                         },
                         '& .MuiInputBase-input': { color: 'white' },
                       },
@@ -290,21 +316,22 @@ const Register = () => {
                     label="Password"
                     type={showPassword ? 'text' : 'password'}
                     variant="outlined"
-                    error={!!errors.password}
-                    helperText={errors.password?.message}
+                    onFocus={handleFormInteraction}
+                    error={hasInteracted && !!errors.password}
+                    helperText={hasInteracted && errors.password?.message}
                     InputLabelProps={{ 
-                      style: { color: errors.password ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
+                      style: { color: (hasInteracted && errors.password) ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { 
-                          borderColor: errors.password ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
+                          borderColor: (hasInteracted && errors.password) ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
                         },
                         '&:hover fieldset': { 
-                          borderColor: errors.password ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
+                          borderColor: (hasInteracted && errors.password) ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
                         },
                         '&.Mui-focused fieldset': { 
-                          borderColor: errors.password ? '#f44336' : 'white' 
+                          borderColor: (hasInteracted && errors.password) ? '#f44336' : 'white' 
                         },
                         '& .MuiInputBase-input': { color: 'white' },
                       },
@@ -347,21 +374,22 @@ const Register = () => {
                     label="Confirm Password"
                     type={showConfirmPassword ? 'text' : 'password'}
                     variant="outlined"
-                    error={!!errors.confirmPassword}
-                    helperText={errors.confirmPassword?.message}
+                    onFocus={handleFormInteraction}
+                    error={hasInteracted && !!errors.confirmPassword}
+                    helperText={hasInteracted && errors.confirmPassword?.message}
                     InputLabelProps={{ 
-                      style: { color: errors.confirmPassword ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
+                      style: { color: (hasInteracted && errors.confirmPassword) ? '#f44336' : 'rgba(255, 255, 255, 0.9)' } 
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { 
-                          borderColor: errors.confirmPassword ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
+                          borderColor: (hasInteracted && errors.confirmPassword) ? '#f44336' : 'rgba(255, 255, 255, 0.5)' 
                         },
                         '&:hover fieldset': { 
-                          borderColor: errors.confirmPassword ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
+                          borderColor: (hasInteracted && errors.confirmPassword) ? '#f44336' : 'rgba(255, 255, 255, 0.8)' 
                         },
                         '&.Mui-focused fieldset': { 
-                          borderColor: errors.confirmPassword ? '#f44336' : 'white' 
+                          borderColor: (hasInteracted && errors.confirmPassword) ? '#f44336' : 'white' 
                         },
                         '& .MuiInputBase-input': { color: 'white' },
                       },
