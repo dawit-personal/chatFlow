@@ -23,6 +23,15 @@ volume-clean:
 	@echo "Cleaning up volumes..."
 	docker compose down -v
 
+# Usage:
+# make migrate-create name="create-chats"
+migrate-create:
+	@if [ -z "$(name)" ]; then \
+		echo "❌ Please provide a name: make migrate-create name=YourMigrationName"; \
+	else \
+		cd backend && npx sequelize-cli migration:generate --name $(name) --migrations-path db/migrations; \
+	fi
+
 # Run all pending database migrations
 # Usage: make migrate-up
 migrate-up:
