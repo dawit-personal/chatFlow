@@ -78,6 +78,12 @@ docker-npm-install:
 
 
 # Usage:
+# Run `make add` to stage all changes (equivalent to `git add .`)
+
+add:
+	git add .
+
+# Usage:
 #  make commit m="commit message" [d="detailed description"]
 commit:
 	@if [ -z "$(m)" ]; then \
