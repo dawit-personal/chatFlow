@@ -79,7 +79,7 @@ logs-top100:
 # inside the repositories directory with basic CRUD methods scaffolded.
 repository:
 	@echo "Generating repository for model: $(MODEL)..."
-	node tools/createRepository.js $(MODEL)
+	node backend/tools/createRepository.js $(MODEL)
 
 # Install a regular dependency (pass the package name as: make docker-npm-install PACKAGE=your-package)
 docker-npm-install:
@@ -111,6 +111,12 @@ commit:
 rebase:
 	@echo "Pulling latest changes from origin/main with rebase..."
 	git pull --rebase origin main
+
+# Usage:
+# Run `make push` to push the latest changes to the remote.
+push:
+	@echo "Pushing to the remote..."
+	git push 
 
 # To make `make logs` and `make logs-top100` work without specifying SERVICE, define a default
 SERVICE := backend 
