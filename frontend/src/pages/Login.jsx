@@ -88,10 +88,17 @@ const Login = () => {
       });
       
       if (response.status === 200) {
-       
-        if (data.accessToken) {
-          setAccessToken(data.accessToken);
+        console.log('Login successful:', response.data);
+        
+        // Set access token from response data
+        if (response.data.accessToken) {
+          setAccessToken(response.data.accessToken);
         }
+        
+        // Redirect to profile page
+        setTimeout(() => {
+          navigate('/profile');
+        }, 0);
         return;
       }
     } catch (error) {

@@ -1,4 +1,4 @@
-const { UserProfile } = require('../../db/models');
+const { UserProfile , User } = require('../../db/models');
 
 class UserProfileRepository {
   async createUserProfile(data, options = {}) {
@@ -31,6 +31,22 @@ class UserProfileRepository {
     return await UserProfile.findOne({
       where,
       attributes: attributes || null,
+      raw: true,
+    });
+  }
+
+  async findUserAndUserProfile(where = {}, attributes = null) {
+    return await UserProfile.findOne({
+      where,
+      attributes: attributes || undefined,
+      include: [
+        {
+          model: User,
+          as: 'user',
+          required: true,
+          attributes: ['email'], 
+        },
+      ],
       raw: true,
     });
   }

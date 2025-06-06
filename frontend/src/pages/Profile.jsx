@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -8,24 +8,130 @@ import {
   Grid,
   Chip,
   IconButton,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './authContext';
+import axios from 'axios';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
+  
+  // State for user data and loading
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Dummy user data
-  const userData = {
-    firstName: 'Alexandra',
-    lastName: 'Mitchell',
-    email: 'alexandra.mitchell@flowchat.com',
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Alexandra&backgroundColor=8E2DE2`,
-    joinDate: 'March 2024',
-    status: 'Active',
-  };
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        // Check if access token is available from auth context
+        if (!accessToken) {
+          setError('No access token found. Please log in again.');
+          navigate('/login');
+          return;
+        }
+
+        const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
+        const response = await axios.get(`${API_ENDPOINT}/users/me`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (response.data && response.data.user) {
+          // Transform API data to match our component structure
+          const user = response.data.user;
+          const transformedData = {
+            firstName: user.firstName || 'N/A',
+            lastName: user.lastName || 'N/A', 
+            email: user['user.email'] || 'Not available',
+            avatar: user.profilePicture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'User'}&backgroundColor=8E2DE2`,
+            joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A',
+            status: 'Active',
+            profileId: user.profileId,
+            userId: user.userId,
+          };
+          setUserData(transformedData);
+        } else {
+          setError('Invalid response format from server.');
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        if (error.response?.status === 401) {
+          setError('Session expired. Please log in again.');
+          navigate('/login');
+        } else {
+          setError('Failed to load user data. Please try again.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigate, accessToken]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          width: '100vw',
+          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: '#8E2DE2' }} />
+      </Box>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          width: '100vw',
+          background: 'linear-gradient(135deg, #232526 0%, #414345 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 3,
+        }}
+      >
+        <Alert 
+          severity="error" 
+          sx={{ 
+            maxWidth: '400px',
+            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+            color: '#f44336',
+            '& .MuiAlert-icon': { color: '#f44336' }
+          }}
+        >
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
+
+  // Main component render (only if userData exists)
+  if (!userData) {
+    return null;
+  }
 
   return (
     <Box

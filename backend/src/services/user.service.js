@@ -4,7 +4,7 @@ const userProfileRepository = require('../repositories/userProfile.repository');
 // @param   userId - ID of the user
 // @returns User object without sensitive fields
 const getUserById = async (userId) => {
-  const user = await userProfileRepository.findUserProfile({userId}, null);
+  const user = await userProfileRepository.findUserAndUserProfile({userId}, null);
   if (!user) {
     throw new Error('User not found');
   }
