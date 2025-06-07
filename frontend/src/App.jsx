@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Chats from './pages/Chats';
+import Message from './pages/Message';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -59,6 +60,11 @@ function App() {
         <Route path="/chats" element={
           <ProtectedRoute>
             <Chats />
+          </ProtectedRoute>
+        } />
+        <Route path="/message/:chatId" element={
+          <ProtectedRoute>
+            <Message />
           </ProtectedRoute>
         } />
       </Routes>

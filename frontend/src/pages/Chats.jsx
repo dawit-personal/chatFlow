@@ -132,30 +132,13 @@ const Chats = () => {
         return;
       }
 
-      const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
-      
       console.log(`Opening chat ${chatId}`);
       
-      // Make API call to get conversation details
-      const response = await axios.get(`${API_ENDPOINT}/conversation/${chatId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      console.log('Chat details:', response.data);
-      
-      // You can add navigation to a chat detail page here
-      // navigate(`/chat/${chatId}`);
+      // Navigate to message page
+      navigate(`/message/${chatId}`);
       
     } catch (error) {
-      console.error('Failed to fetch chat details:', error);
-      if (error.response?.status === 401) {
-        setError('Session expired. Please log in again.');
-        navigate('/login');
-      } else {
-        console.error('Failed to load chat details.');
-      }
+      console.error('Failed to navigate to chat:', error);
     }
   };
 
