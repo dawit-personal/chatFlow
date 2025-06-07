@@ -82,6 +82,9 @@ const Login = () => {
     
     try {
       const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
+      console.log('Attempting login to:', `${API_ENDPOINT}/auth/login`);
+      console.log('Login data:', { email: data.email, password: '[REDACTED]' });
+      
       const response = await axios.post(`${API_ENDPOINT}/auth/login`, {
         email: data.email,
         password: data.password,
@@ -103,6 +106,9 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login failed:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
       setError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);

@@ -12,7 +12,26 @@ const io = new Server({
 
 io.on('connection', (socket) => {
     console.log('a user connected', socket.id);
+
+    let onlineUsers = [];
+
+    // listen to a connection 
+    socket.on('addNewChat', (userId) => {
+      //do not add user id to online users if it already exists
+      !onlineUsers.some(user => user.userId === userId) &&
+        onlineUsers.push({
+          userId,
+          socketId: socket.id,
+        });
+       // io.emit('getOnlineUsers', onlineUsers);
+       console.log('onlineUsers', onlineUsers);
+    })
+
+    // listen to a connection 
+    socket.on('leave_room', (userId) => {
+        socket.leave(userId);
+    });
 });
 
 
-io.listen(3000);
+io.listen(5000);

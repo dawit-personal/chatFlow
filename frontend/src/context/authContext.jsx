@@ -52,6 +52,12 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Logout function to clear everything
+  const logout = () => {
+    console.log('Logging out user');
+    setAccessToken(null);
+  };
+
   // Clear token on storage events (logout from another tab)
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -66,7 +72,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ accessToken, setAccessToken, user }}>
+    <AuthContext.Provider value={{ accessToken, setAccessToken, user, logout }}>
       {children}
     </AuthContext.Provider>
   );

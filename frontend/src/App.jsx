@@ -23,11 +23,15 @@ function ProtectedRoute({ children }) {
 function PublicRoute({ children }) {
   const { accessToken } = useAuth();
   
+  console.log('PublicRoute check:', { accessToken: accessToken ? 'exists' : 'null' });
+  
   // If already authenticated, redirect to profile
   if (accessToken) {
+    console.log('Redirecting to profile because access token exists');
     return <Navigate to="/profile" replace />;
   }
   
+  console.log('Rendering public route (login/register)');
   // If not authenticated, render the public component
   return children;
 }
@@ -46,9 +50,7 @@ function App() {
           </PublicRoute>
         } />
         <Route path="/login" element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
+          <Login />
         } />
         
         {/* Protected routes - require authentication */}

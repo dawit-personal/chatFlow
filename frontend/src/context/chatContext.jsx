@@ -27,7 +27,7 @@ export const ChatProvider = ({ children }) => {
       const newSocket = io(SERVER_URL, {
         auth: {
           token: accessToken,
-          userId: user.userId,
+          userId: user?.userId,
         },
         transports: ['websocket', 'polling'],
       });
@@ -36,7 +36,10 @@ export const ChatProvider = ({ children }) => {
       newSocket.on('connect', () => {
         console.log('Connected to chat server');
         setIsConnected(true);
+        newSocket.emit('addNewChat', user?.userId);
       });
+
+ 
 
       newSocket.on('disconnect', () => {
         console.log('Disconnected from chat server');
@@ -47,6 +50,11 @@ export const ChatProvider = ({ children }) => {
         console.error('Socket connection error:', error);
         setIsConnected(false);
       });
+
+      newSocket.on('getOnlineUsers', (users) => {
+        setOnlineUsers(new Set(users.map(u => u.userId)));
+      });
+
 
       // User presence events
       newSocket.on('user_online', (userId) => {
@@ -65,7 +73,7 @@ export const ChatProvider = ({ children }) => {
         setOnlineUsers(new Set(users));
       });
 
-      // Message events
+      // Message handlers
       newSocket.on('new_message', (message) => {
         console.log('New message received:', message);
         // Update active chats with new message
