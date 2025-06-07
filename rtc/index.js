@@ -32,10 +32,12 @@ io.on('connection', (socket) => {
        io.emit('getOnlineUsers', onlineUsers);
     })
 
-    // listen to a connection 
-    socket.on('leave_room', (userId) => {
-        socket.leave(userId);
+    socket.on('disconnect', () => {
+      onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id);
+      io.emit('getOnlineUsers', onlineUsers);
+      console.log(`User disconnected: ${socket.id}`);
     });
+    
 });
 
 
