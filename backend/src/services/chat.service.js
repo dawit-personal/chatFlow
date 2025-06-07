@@ -54,7 +54,7 @@ const getChats = async ({ userId, page, pageSize }) => {
 //@access  Private
 const getMessages = async ({ chatId, userId }) => {
   const messages = await messageRepository.findAllMessages({
-    chatId,
+    where: { chatId },
     limit: 15,
     offset: 0
   });
