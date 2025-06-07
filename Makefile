@@ -85,6 +85,11 @@ repository:
 docker-npm-install:
 	docker compose exec backend npm install $(PACKAGE)
 
+# Usage:
+# make branch         → Prompts for branch name and creates it
+branch:
+	@read -p "Enter new branch name: " branch_name; \
+	git checkout -b $$branch_name
 
 # Usage:
 # Run `make add` to stage all changes (equivalent to `git add .`)
