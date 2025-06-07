@@ -22,7 +22,7 @@ export const ChatProvider = ({ children }) => {
   // Initialize socket connection
   useEffect(() => {
     if (accessToken && user) {
-      const SERVER_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
+      const SERVER_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
       
       const newSocket = io(SERVER_URL, {
         auth: {
