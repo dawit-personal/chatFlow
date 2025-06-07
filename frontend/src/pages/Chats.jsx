@@ -122,7 +122,7 @@ const Chats = () => {
   // Load initial chats
   useEffect(() => {
     fetchChats(1);
-  }, [accessToken, onlineUsers]);
+  }, [accessToken]);
 
   // Handle load more
   const handleLoadMore = () => {

@@ -41,10 +41,10 @@ export const ChatProvider = ({ children }) => {
 
     // Fires when successfully connected
     const handleConnect = () => {
-      console.log('✅ Connected to socket');
+      console.log('Connected to socket');
       setIsConnected(true);
-      newSocket.emit('addNewChat', user.userId); // Notify server who joined
-      newSocket.emit('getOnlineUsers'); // Request initial online users
+      newSocket.emit('create_new_chat', user.userId); // Notify server who joined
+      newSocket.emit('get_online_users'); // Request initial online users
     };
 
     // Fires when disconnected
@@ -118,7 +118,7 @@ export const ChatProvider = ({ children }) => {
     newSocket.on('connect', handleConnect);
     newSocket.on('disconnect', handleDisconnect);
     newSocket.on('connect_error', handleConnectError);
-    newSocket.on('getOnlineUsers', handleOnlineUsers);
+    newSocket.on('get_online_users', handleOnlineUsers);
     newSocket.on('user_online', handleUserOnline);
     newSocket.on('user_offline', handleUserOffline);
     newSocket.on('new_message', handleNewMessage);
@@ -132,7 +132,7 @@ export const ChatProvider = ({ children }) => {
     //  or temporary network drops, which are common in real-world scenarios with TCP-based WebSocket connections.
     //tradeoffs:increasing network traffic, especially with many concurrent users and delay updates, battery udage
     // const pollOnlineUsers = setInterval(() => {
-    //   newSocket.emit('getOnlineUsers');
+    //   newSocket.emit('get_online_users');
     // }, 30000);
 
     setSocket(newSocket);
@@ -144,7 +144,7 @@ export const ChatProvider = ({ children }) => {
       newSocket.off('connect', handleConnect);
       newSocket.off('disconnect', handleDisconnect);
       newSocket.off('connect_error', handleConnectError);
-      newSocket.off('getOnlineUsers', handleOnlineUsers);
+      newSocket.off('get_online_users', handleOnlineUsers);
       newSocket.off('user_online', handleUserOnline);
       newSocket.off('user_offline', handleUserOffline);
       newSocket.off('new_message', handleNewMessage);
@@ -159,6 +159,48 @@ export const ChatProvider = ({ children }) => {
     };
   }, [accessToken, user?.userId]);
 
+  //Send message to another user ===
+  const sendMessage = (chatId, recipientId, text) => {
+    // 1. Ensure the socket is connected and user is authenticated
+    if (!socket || !user?.userId) {
+      console.warn('Cannot send message: Socket not connected or user missing');
+      return { success: false, reason: 'Not connected or no user' };
+    }
+  
+    // 2. Check if the recipient is online
+    if (!onlineUsers.has(recipientId)) {
+      console.warn('Recipient is offline');
+      return { success: false, reason: 'User offline' };
+    }
+  
+    // 3. Construct the message payload
+    const message = {
+      chatId,
+      senderId: user.userId,
+      recipientId,
+      text,
+      timestamp: new Date().toISOString(),
+    };
+  
+    // 4. Emit the message to the server with an acknowledgement callback
+    socket.emit('send_message', message, (response) => {
+      if (!response.success) {
+        console.error('Server failed to deliver message:', response.reason);
+        // Optionally: Rollback optimistic UI update or show retry UI
+      }
+    });
+  
+    // 5. Optimistically update the chat UI immediately
+    setActiveChats(prev => {
+      const updated = new Map(prev);
+      const messages = updated.get(chatId) || [];
+      updated.set(chatId, [...messages, { ...message, pending: true }]);
+      return updated;
+    });
+  
+    return { success: true };
+  };
+
   return (
     <ChatContext.Provider
       value={{
@@ -167,6 +209,7 @@ export const ChatProvider = ({ children }) => {
         onlineUsers,
         activeChats,
         setActiveChats,
+        sendMessage,
       }}
     >
       {children}
@@ -174,7 +217,7 @@ export const ChatProvider = ({ children }) => {
   );
 };
 
-// ✅ Custom hook for easier context usage in components
+// Custom hook for easier context usage in components
 export const useChat = () => {
   const context = useContext(ChatContext);
   if (!context) {
