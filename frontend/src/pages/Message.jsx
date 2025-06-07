@@ -125,19 +125,18 @@ const Message = () => {
       setMessages(prev => [...prev, messageObj]);
       setNewMessage('');
 
-      // Here you would make an API call to send the message
-      // const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
-      // const response = await axios.post(`${API_ENDPOINT}/conversations/${chatId}/messages`, {
-      //   content: newMessage.trim(),
-      //   messageType: 'text',
-      // }, {
-      //   headers: { Authorization: `Bearer ${accessToken}` },
-      // });
-      // 
-      // // Update the message with real ID from server
-      // setMessages(prev => prev.map(msg => 
-      //   msg.id === messageObj.id ? { ...msg, id: response.data.id } : msg
-      // ));
+      // Send message to API
+      const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
+      const response = await axios.post(`${API_ENDPOINT}/conversations/${chatId}/messages`, {
+        content: newMessage.trim(),
+      }, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      
+      // Update the message with real ID from server
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageObj.id ? { ...msg, id: response.data.id } : msg
+      ));
 
     } catch (error) {
       console.error('Failed to send message:', error);
