@@ -15,7 +15,6 @@ const createChat = async (data) => {
     //create chat members for all participants
     const allParticipants = [data.userId, ...data.participantIds];
 
-    console.log(allParticipants, 'allParticipants');
     await Promise.all(
       allParticipants.map(userId =>
         chatMemberRepository.createChatMember({ chatId: chat.id, userId }, { transaction })
@@ -52,7 +51,7 @@ const getChats = async ({ userId, page, pageSize }) => {
 //@access  Private
 const getMessages = async ({ chatId, userId }) => {
   const messages = await messageRepository.findAllMessages({
-    where: { chatId },
+    chatId,
     limit: 15,
     offset: 0
   });
