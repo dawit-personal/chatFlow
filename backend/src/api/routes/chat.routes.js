@@ -19,6 +19,12 @@ router.get('/conversation/:id', authenticate,chatController.getChat);
 // @access  Private
 router.get('/conversations', authenticate,chatController.getChats);
 
+// @route   GET /conversation/:id/messages
+// @desc    get messages for a chat
+// @access  Private
+router.get('/conversations/:id/messages', authenticate,chatController.getMessages);
+
+
 
 
 

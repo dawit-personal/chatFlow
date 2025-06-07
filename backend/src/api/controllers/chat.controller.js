@@ -64,10 +64,25 @@ async function getChats(req, res, next) {
       return res.status(500).json({ message: 'Server error during chat list retrieval.' });
     }
   }
-  
+
+//@desc    get messages for a chat
+//@route   GET /conversation/:id/messages
+//@access  Private
+async function getMessages(req, res, next) {
+  try {
+    const chatId = req.params.id;
+    const userId = req.user.userId;
+    const messages = await chatService.getMessages({chatId, userId});
+    return res.status(200).json({ messages });
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    return res.status(500).json({ message: 'Server error during message retrieval.' });
+  }
+}
 
 module.exports = {
    createChat,
    getChat,
-   getChats
+   getChats,
+   getMessages
 }; 

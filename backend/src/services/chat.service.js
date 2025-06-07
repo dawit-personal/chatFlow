@@ -15,14 +15,14 @@ const createChat = async (data) => {
     //create chat members for all participants
     const allParticipants = [data.userId, ...data.participantIds];
 
-    console.log(allParticipants,'allParticipants');
+    console.log(allParticipants, 'allParticipants');
     await Promise.all(
       allParticipants.map(userId =>
         chatMemberRepository.createChatMember({ chatId: chat.id, userId }, { transaction })
       )
     );
     const message = await messageRepository.createMessage({ chatId: chat.id, senderUserId: data.userId, content: data.message }, { transaction });
-    const messageStatus = await messageStatusRepository.createMessageStatus({ messageId: message.id,userId:data.userId, status: 'sent' }, { transaction });
+    const messageStatus = await messageStatusRepository.createMessageStatus({ messageId: message.id, userId: data.userId, status: 'sent' }, { transaction });
 
     return chat || null;
   });
@@ -47,8 +47,22 @@ const getChats = async ({ userId, page, pageSize }) => {
   return await chatMemberRepository.findAllChatMembersByName({ userId, offset, limit });
 };
 
+//@desc    get messages for a chat
+//@route   GET /conversation/:id/messages
+//@access  Private
+const getMessages = async ({ chatId, userId }) => {
+  const messages = await messageRepository.findAllMessages({
+    where: { chatId },
+    limit: 15,
+    offset: 0
+  });
+  return messages || null;
+};
+
+
 module.exports = {
   createChat,
   getChat,
-  getChats
+  getChats,
+  getMessages
 };

@@ -40,7 +40,7 @@ class MessageRepository {
       where,
       offset,
       limit,
-      order: [['updatedAt', 'DESC']],
+      order: [['timestamp', 'DESC']],
       raw: true,
     });
   }
