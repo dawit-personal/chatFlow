@@ -58,10 +58,23 @@ const getMessages = async ({ chatId, userId }) => {
   return messages || null;
 };
 
+//@desc    send message to a chat
+//@route   POST /conversations/:id/messages
+//@access  Private
+const sendMessage = async ({ chatId, userId, ...data }) => {
+  return await DBService.performTransaction(async (transaction) => {
+    const message = await messageRepository.createMessage({ chatId, senderUserId: userId, ...data }, { transaction });
+    const messageStatus = await messageStatusRepository.createMessageStatus({ messageId: message.id, userId, status: 'sent' }, { transaction });
+    return message || null;
+  });
+  return message || null;
+};
+
 
 module.exports = {
   createChat,
   getChat,
   getChats,
-  getMessages
+  getMessages,
+  sendMessage
 };

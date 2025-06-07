@@ -24,6 +24,12 @@ router.get('/conversations', authenticate,chatController.getChats);
 // @access  Private
 router.get('/conversations/:id/messages', authenticate,chatController.getMessages);
 
+// @route   POST /conversations/:id/messages
+// @desc    send message to a chat
+// @access  Private
+router.post('/conversations/:id/messages', authenticate,chatController.sendMessage);
+
+
 
 
 

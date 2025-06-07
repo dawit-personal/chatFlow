@@ -80,9 +80,26 @@ async function getMessages(req, res, next) {
   }
 }
 
+//@desc    send message to a chat
+//@route   POST /conversations/:id/messages
+//@access  Private
+async function sendMessage(req, res, next) {
+  try {
+    const chatId = req.params.id;
+    const userId = req.user.userId;
+    const data = req.body;
+    const message = await chatService.sendMessage({chatId, userId, ...data});
+    return res.status(200).json({ message });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    return res.status(500).json({ message: 'Server error during message sending.' });
+  }
+}
+
 module.exports = {
    createChat,
    getChat,
    getChats,
-   getMessages
+   getMessages,
+   sendMessage
 }; 
