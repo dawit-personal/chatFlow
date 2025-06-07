@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       senderUserId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
       },
       content: {
@@ -57,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'Message',
       tableName: 'Messages',
-      timestamps: true,
+      timestamps: false,
       underscored: false,
     }
   );

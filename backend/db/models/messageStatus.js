@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       userId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
       },
       status: {
@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'MessageStatus',
       tableName: 'MessageStatuses',
-      timestamps: true,
+      timestamps: false,
       underscored: false,
     }
   );

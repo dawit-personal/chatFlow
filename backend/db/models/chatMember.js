@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       userId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'Users',
@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'ChatMember',
       tableName: 'ChatMembers',
-      timestamps: true,
+      timestamps: false,
       underscored: false,
     }
   );
