@@ -21,6 +21,9 @@ async function createChat(req, res, next) {
     }
 }
 
+//@desc    get a chat
+//@route   GET /conversations/:id
+//@access  Private
 async function getChat(req, res, next) {
     try {
         const chatId = req.params.id;
@@ -40,8 +43,31 @@ async function getChat(req, res, next) {
         return res.status(500).json({ message: 'Server error during chat retrieval.' });
     }
 }
+//@desc    get all chats
+//@route   GET /conversations
+//@access  Private
+async function getChats(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const page = parseInt(req.query.page) || 1;
+      const pageSize = parseInt(req.query.pageSize) || 10;
+  
+      const chats = await chatService.getChats({ userId, page, pageSize });
+  
+      return res.status(200).json({ 
+        page,
+        pageSize,
+        data: chats 
+      });
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+      return res.status(500).json({ message: 'Server error during chat list retrieval.' });
+    }
+  }
+  
 
 module.exports = {
    createChat,
-   getChat
+   getChat,
+   getChats
 }; 

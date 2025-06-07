@@ -14,5 +14,12 @@ router.post('/conversations', authenticate,chatController.createChat);
 // @access  Private
 router.get('/conversation/:id', authenticate,chatController.getChat);
 
+// @route   GET /conversations
+// @desc    get all chats
+// @access  Private
+router.get('/conversations', authenticate,chatController.getChats);
+
+
+
 
 module.exports = router; 

@@ -34,6 +34,16 @@ class ChatRepository {
       raw: true,
     });
   }
+
+  async findAllChats({ where = {}, offset = 0, limit = 10 }) {
+    return await Chat.findAll({
+      where,
+      offset,
+      limit,
+      order: [['updatedAt', 'DESC']],
+      raw: true,
+    });
+  }
 }
 
 module.exports = new ChatRepository();

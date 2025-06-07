@@ -59,6 +59,16 @@ class ${className} {
       raw: true,
     });
   }
+
+  async findAll${modelName}s({ where = {}, offset = 0, limit = 10 }) {
+    return await ${modelName}.findAll({
+      where,
+      offset,
+      limit,
+      order: [['updatedAt', 'DESC']],
+      raw: true,
+    });
+  }
 }
 
 module.exports = new ${className}();
