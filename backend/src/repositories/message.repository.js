@@ -40,7 +40,7 @@ class MessageRepository {
       where,
       offset,
       limit,
-      order: [['timestamp', 'DESC']],
+      order: [['timestamp', 'ASC']],
       raw: true,
     });
   }
