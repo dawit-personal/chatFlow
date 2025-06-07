@@ -1,5 +1,6 @@
-const { ChatMember } = require('../../db/models');
+const { ChatMember,  UserProfile, Chat, User } = require('../../db/models');
 
+const { Op } = require('sequelize');
 class ChatMemberRepository {
   async createChatMember(data, options = {}) {
     return await ChatMember.create(data, options);
@@ -52,6 +53,31 @@ class ChatMemberRepository {
       raw: true,
     });
   }
+  async findAllChatMembersByName({ userId, offset = 0, limit = 10 }) {
+    return await ChatMember.findAll({
+      where: {
+        userId: { [Op.ne]: userId },  // exclude current user
+      },
+      include: [
+        {
+          model: User,
+          as: 'user',  // make sure this matches your association alias in ChatMember model
+          include: [
+            {
+              model: UserProfile,
+              as: 'profile', // this alias should match the UserProfile -> User association
+              attributes: ['firstName', 'lastName'],
+            },
+          ],
+        },
+      ],
+      offset,
+      limit,
+      order: [['joinedAt', 'DESC']],
+    });
 }
+
+}
+
 
 module.exports = new ChatMemberRepository();

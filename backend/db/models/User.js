@@ -4,7 +4,13 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // define associations here if needed later
+
+      User.hasOne(models.UserProfile, {
+        foreignKey: 'userId',
+        as: 'profile', // use 'profile' alias here
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      });
     }
   }
 
