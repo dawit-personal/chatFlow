@@ -19,7 +19,7 @@ import {
   DoneAll as DoneAllIcon,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from './authContext';
+import { useAuth } from '../context/authContext';
 import axios from 'axios';
 
 const Message = () => {

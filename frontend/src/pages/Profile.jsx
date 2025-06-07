@@ -15,7 +15,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './authContext';
+import { useAuth } from '../context/authContext';
 import axios from 'axios';
 
 const Profile = () => {

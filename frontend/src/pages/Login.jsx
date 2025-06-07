@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from './authContext';
+import { useAuth } from '../context/authContext';
 import {
   Box,
   Typography,

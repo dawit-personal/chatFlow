@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { Message as MessageIcon, Schedule as ScheduleIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './authContext';
+import { useAuth } from '../context/authContext';
 import axios from 'axios';
 
 const Chats = () => {

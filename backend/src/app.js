@@ -10,7 +10,7 @@ const app = express();
 
 // Enable CORS before any routes
 app.use(cors({
-    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', // Adjust to your frontend URL
+    origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', 
     credentials: true, // if you're sending cookies
   }));
 
