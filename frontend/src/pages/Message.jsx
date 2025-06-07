@@ -15,6 +15,8 @@ import {
   Send as SendIcon,
   ArrowBack as ArrowBackIcon,
   MoreVert as MoreVertIcon,
+  Done as DoneIcon,
+  DoneAll as DoneAllIcon,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from './authContext';
@@ -23,7 +25,7 @@ import axios from 'axios';
 const Message = () => {
   const navigate = useNavigate();
   const { chatId } = useParams();
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   
   // State management
   const [messages, setMessages] = useState([]);
@@ -47,49 +49,46 @@ const Message = () => {
 
       const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
       
-      // For now, we'll create fake data since the API might not have messages
-      // You can replace this with real API calls when ready
+      // Fetch real messages from API
+      const messagesResponse = await axios.get(`${API_ENDPOINT}/conversations/${chatId}/messages`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+
+      // Get current user ID for comparison
+      const currentUserId = user?.userId 
+      
+      // Transform API messages to match UI expectations
+      const transformedMessages = messagesResponse.data.messages.map(message => ({
+        id: message.id,
+        content: message.content,
+        senderId: message.senderUserId,
+        timestamp: new Date(message.timestamp),
+        isMe: message.senderUserId === currentUserId,
+        isRead: message.isRead,
+        messageType: message.messageType,
+      }));
+
+      // Create chat info (you can enhance this with real chat details later)
       const fakeChatInfo = {
         id: chatId,
-        name: 'Dawit DTamruow',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Dawit&backgroundColor=8E2DE2`,
+        name: 'Chat Conversation',
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Chat${chatId}&backgroundColor=8E2DE2`,
         isOnline: true,
       };
 
-      // Fake messages for demo - replace with real API call
-      const fakeMessages = [
-        // Uncomment below to see messages, or leave empty to show "No messages yet"
-        // {
-        //   id: 1,
-        //   content: 'Hey! How are you doing today?',
-        //   senderId: 'other-user',
-        //   timestamp: new Date(Date.now() - 3600000), // 1 hour ago
-        //   isMe: false,
-        // },
-        // {
-        //   id: 2,
-        //   content: 'I\'m doing great! Thanks for asking. How about you?',
-        //   senderId: 'current-user',
-        //   timestamp: new Date(Date.now() - 3000000), // 50 minutes ago
-        //   isMe: true,
-        // },
-        // {
-        //   id: 3,
-        //   content: 'That\'s wonderful to hear! I\'m doing well too.',
-        //   senderId: 'other-user',
-        //   timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
-        //   isMe: false,
-        // },
-      ];
-
       setChatInfo(fakeChatInfo);
-      setMessages(fakeMessages);
+      setMessages(transformedMessages);
       
     } catch (error) {
       console.error('Failed to fetch chat data:', error);
       if (error.response?.status === 401) {
         setError('Session expired. Please log in again.');
         navigate('/login');
+      } else if (error.response?.status === 404) {
+        setError('Chat not found.');
       } else {
         setError('Failed to load chat. Please try again.');
       }
@@ -107,17 +106,20 @@ const Message = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending) return;
 
+    // Create new message object for optimistic update
+    const currentUserId = user?.userId || user?.id;
+    const messageObj = {
+      id: Date.now(), // Temporary ID
+      content: newMessage.trim(),
+      senderId: currentUserId,
+      timestamp: new Date(),
+      isMe: true,
+      isRead: false, // New messages start as unread
+      messageType: 'text',
+    };
+
     try {
       setSending(true);
-      
-      // Create new message object
-      const messageObj = {
-        id: Date.now(),
-        content: newMessage.trim(),
-        senderId: 'current-user',
-        timestamp: new Date(),
-        isMe: true,
-      };
 
       // Add message to list immediately (optimistic update)
       setMessages(prev => [...prev, messageObj]);
@@ -125,12 +127,17 @@ const Message = () => {
 
       // Here you would make an API call to send the message
       // const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
-      // await axios.post(`${API_ENDPOINT}/messages`, {
-      //   chatId,
+      // const response = await axios.post(`${API_ENDPOINT}/conversations/${chatId}/messages`, {
       //   content: newMessage.trim(),
+      //   messageType: 'text',
       // }, {
       //   headers: { Authorization: `Bearer ${accessToken}` },
       // });
+      // 
+      // // Update the message with real ID from server
+      // setMessages(prev => prev.map(msg => 
+      //   msg.id === messageObj.id ? { ...msg, id: response.data.id } : msg
+      // ));
 
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -341,21 +348,47 @@ const Message = () => {
                   >
                     {message.content}
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: 'block',
-                      mt: 0.5,
-                      opacity: 0.7,
-                      fontSize: '0.7rem',
-                    }}
-                  >
-                    {message.timestamp.toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true,
-                    })}
-                  </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    mt: 0.5,
+                  }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        opacity: 0.7,
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      {message.timestamp.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                    </Typography>
+                    {message.isMe && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                        {message.isRead ? (
+                          <DoneAllIcon 
+                            sx={{ 
+                              fontSize: '0.8rem', 
+                              color: '#4CAF50', // Green for read
+                              opacity: 0.8,
+                            }} 
+                          />
+                        ) : (
+                          <DoneIcon 
+                            sx={{ 
+                              fontSize: '0.8rem', 
+                              color: 'rgba(255, 255, 255, 0.6)', // Grey for unread
+                              opacity: 0.6,
+                            }} 
+                          />
+                        )}
+                      </Box>
+                    )}
+                  </Box>
                 </Paper>
                 
                 {message.isMe && (
