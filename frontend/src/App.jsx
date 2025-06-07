@@ -3,6 +3,7 @@ import { useAuth } from './pages/authContext';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
+import Chats from './pages/Chats';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -53,6 +54,11 @@ function App() {
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/chats" element={
+          <ProtectedRoute>
+            <Chats />
           </ProtectedRoute>
         } />
       </Routes>
