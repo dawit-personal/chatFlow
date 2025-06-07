@@ -53,10 +53,11 @@ class ChatMemberRepository {
       raw: true,
     });
   }
-  async findAllChatMembersByName({ userId, offset = 0, limit = 10 }) {
+  async findAllChatMembersByName({ userId, chatId, offset = 0, limit = 10 }) {
     return await ChatMember.findAll({
       where: {
         userId: { [Op.ne]: userId },  // exclude current user
+        chatId: chatId,
       },
       include: [
         {
