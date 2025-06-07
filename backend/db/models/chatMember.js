@@ -23,13 +23,13 @@ module.exports = (sequelize, DataTypes) => {
   ChatMember.init(
     {
       id: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
         primaryKey: true,
         allowNull: false,
-        defaultValue: DataTypes.UUIDV4,
       },
       chatId: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           model: 'Chats',
@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       userId: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           model: 'Users',

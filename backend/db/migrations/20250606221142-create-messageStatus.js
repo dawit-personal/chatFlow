@@ -2,18 +2,18 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Ensure UUID extension exists
+    // Ensure UUID extension exists for UUID generation
     await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
     await queryInterface.createTable('MessageStatuses', {
       id: {
-        type: Sequelize.UUID,
-        primaryKey: true,
         allowNull: false,
-        defaultValue: Sequelize.literal('uuid_generate_v4()'),
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
       },
       messageId: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'Messages',

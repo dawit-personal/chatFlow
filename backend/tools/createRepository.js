@@ -2,26 +2,32 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const modelName = process.argv[2];
-if (!modelName) {
-  console.error('❌ Please provide a model name (e.g. UserProfile)');
+const inputName = process.argv[2];
+if (!inputName) {
+  console.error('❌ Please provide a model name (e.g. chat)');
   process.exit(1);
 }
 
-// Convert to camelCase for filename: UserProfile -> userProfile
+// Capitalize first letter for model class name
+function toPascalCase(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function toCamelCase(str) {
   return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
+const modelName = toPascalCase(inputName);        // Chat
+const camelModelName = toCamelCase(modelName);    // chat
 const className = `${modelName}Repository`;
-const fileName = `${toCamelCase(modelName)}.repository.js`;
+const fileName = `${camelModelName}.repository.js`;
 const filePath = path.join(__dirname, '../src/repositories', fileName);
 
 const content = `const { ${modelName} } = require('../../db/models');
 
 class ${className} {
-  async create${modelName}(data) {
-    return await ${modelName}.create(data);
+  async create${modelName}(data, options = {}) {
+    return await ${modelName}.create(data, options);
   }
 
   async get${modelName}ById(id) {
@@ -32,14 +38,14 @@ class ${className} {
     return await ${modelName}.findAll();
   }
 
-  async update${modelName}(id, updates) {
-    const item = await ${modelName}.findByPk(id);
+  async update${modelName}(id, updates, options = {}) {
+    const item = await ${modelName}.findByPk(id, options);
     if (!item) return null;
-    return await item.update(updates);
+    return await item.update(updates, options);
   }
 
-  async delete${modelName}(id) {
-    return await ${modelName}.destroy({ where: { id } });
+  async delete${modelName}(id, options = {}) {
+    return await ${modelName}.destroy({ where: { id }, ...options });
   }
 
   async count${modelName}s() {

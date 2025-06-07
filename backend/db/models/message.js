@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
 
       // A message is sent by a User
       Message.belongsTo(models.User, {
-        foreignKey: 'senderId',
+        foreignKey: 'senderUserId',
         as: 'sender',
       });
     }
@@ -21,17 +21,17 @@ module.exports = (sequelize, DataTypes) => {
   Message.init(
     {
       id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
         primaryKey: true,
         allowNull: false,
       },
       chatId: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
-      senderId: {
-        type: DataTypes.UUID,
+      senderUserId: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
       content: {

@@ -1,0 +1,39 @@
+const { Chat } = require('../../db/models');
+
+class ChatRepository {
+  async createChat(data, options = {}) {
+    return await Chat.create(data, options);
+  }
+
+  async getChatById(id) {
+    return await Chat.findByPk(id);
+  }
+
+  async getAllChats() {
+    return await Chat.findAll();
+  }
+
+  async updateChat(id, updates, options = {}) {
+    const item = await Chat.findByPk(id, options);
+    if (!item) return null;
+    return await item.update(updates, options);
+  }
+
+  async deleteChat(id, options = {}) {
+    return await Chat.destroy({ where: { id }, ...options });
+  }
+
+  async countChats() {
+    return await Chat.count();
+  }
+
+  async findChat(where = {}, attributes = null) {
+    return await Chat.findOne({
+      where,
+      attributes: attributes || null,
+      raw: true,
+    });
+  }
+}
+
+module.exports = new ChatRepository();

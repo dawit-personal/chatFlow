@@ -2,15 +2,15 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Ensure the uuid-ossp extension is enabled
+    // Ensure UUID extension exists for UUID generation
     await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-
+    
     await queryInterface.createTable('ChatMembers', {
       id: {
-        type: Sequelize.UUID,
-        primaryKey: true,
         allowNull: false,
-        defaultValue: Sequelize.literal('uuid_generate_v4()'),
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
       },
       userId: {
         type: Sequelize.UUID,
@@ -23,7 +23,7 @@ module.exports = {
         onUpdate: 'CASCADE',
       },
       chatId: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'Chats',

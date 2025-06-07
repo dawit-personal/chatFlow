@@ -2,18 +2,19 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // Ensure UUID extension exists
+
+    // Ensure UUID extension exists for UUID generation
     await queryInterface.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
     await queryInterface.createTable('Messages', {
       id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.literal('uuid_generate_v4()'),
-        primaryKey: true,
         allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER,
       },
       chatId: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'Chats',
@@ -21,7 +22,7 @@ module.exports = {
         },
         onDelete: 'CASCADE',
       },
-      senderId: {
+      senderUserId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -52,7 +53,7 @@ module.exports = {
 
     // Indexes for performance
     await queryInterface.addIndex('Messages', ['chatId']);
-    await queryInterface.addIndex('Messages', ['senderId']);
+    await queryInterface.addIndex('Messages', ['senderUserId']);
     await queryInterface.addIndex('Messages', ['timestamp']);
     await queryInterface.addIndex('Messages', ['chatId', 'timestamp']); // Composite for chat history
   },
