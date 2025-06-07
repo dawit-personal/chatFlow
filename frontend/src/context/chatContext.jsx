@@ -72,9 +72,11 @@ export const ChatProvider = ({ children }) => {
     };
 
     const handleUserOffline = (userId) => {
+      console.log('User offline:', userId);
       setOnlineUsers(prev => {
         const updated = new Set(prev);
         updated.delete(userId);
+        console.log('Updated online users after offline:', Array.from(updated));
         return updated;
       });
     };
@@ -138,7 +140,7 @@ export const ChatProvider = ({ children }) => {
     // --- Cleanup function ---
     return () => {
       //clearInterval(pollOnlineUsers);
-      // 🧼 Use socket.off() to clean up listeners so they don't stack on re-render or re-mount
+      // Use socket.off() to clean up listeners so they don't stack on re-render or re-mount
       newSocket.off('connect', handleConnect);
       newSocket.off('disconnect', handleDisconnect);
       newSocket.off('connect_error', handleConnectError);

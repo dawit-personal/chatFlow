@@ -13,35 +13,52 @@ const io = new Server({
 let onlineUsers = [];
 
 io.on('connection', (socket) => {
-    console.log('a user connected', socket.id);
+  console.log('a user connected', socket.id);
 
 
 
-    // listen to a connection 
-    socket.on('addNewChat', (userId) => {
-      //do not add user id to online users if it already exists
-      !onlineUsers.some(user => user.userId === userId) &&
-        onlineUsers.push({
-          userId,
-          socketId: socket.id,
-        });
+  // listen to a connection 
+  socket.on('addNewChat', (userId) => {
+    //do not add user id to online users if it already exists
+    !onlineUsers.some(user => user.userId === userId) &&
+      onlineUsers.push({
+        userId,
+        socketId: socket.id,
+      });
 
-        // Emit to all clients, including sender
-        io.emit('user_online', userId);
-       // io.emit('getOnlineUsers', onlineUsers);
-       console.log('User disconnected:', socket.id, 'onlineUsers:', onlineUsers);
-       io.emit('user_offline', userId);
-       //emit the online users to the client- All users get this event
-       io.emit('getOnlineUsers', onlineUsers);
-    })
+    // Emit to all clients, including sender
+    io.emit('user_online', userId);
+    //emit the online users to the client- All users get this event
+    io.emit('getOnlineUsers', onlineUsers);
+    console.log('User connected:', userId, 'onlineUsers:', onlineUsers);
+  })
 
-    socket.on('disconnect', () => {
-      onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id);
-      
-      io.emit('getOnlineUsers', onlineUsers);
-      console.log(`User disconnected: ${socket.id}`);
-    });
-    
+  // Handle request for current online users
+  socket.on('getOnlineUsers', () => {
+    socket.emit('getOnlineUsers', onlineUsers);
+    console.log('Sent online users to client:', socket.id, onlineUsers);
+  });
+
+  socket.on('disconnect', () => {
+    // Find the user that's disconnecting before removing them
+    const disconnectedUser = onlineUsers.find(user => user.socketId === socket.id);
+
+    // Remove user from online users array
+    onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id);
+
+    // If we found the user, emit offline event with their userId
+    if (disconnectedUser) {
+      io.emit('user_offline', disconnectedUser.userId);
+      console.log(`User disconnected: ${socket.id}, userId: ${disconnectedUser.userId}`);
+    } else {
+      console.log(`User disconnected: ${socket.id} (userId not found)`);
+    }
+
+    // Emit updated online users list to all clients
+    io.emit('getOnlineUsers', onlineUsers);
+    console.log('Updated onlineUsers after disconnect:', onlineUsers);
+  });
+
 });
 
 
