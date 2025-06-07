@@ -10,10 +10,12 @@ const io = new Server({
   },
 });
 
+let onlineUsers = [];
+
 io.on('connection', (socket) => {
     console.log('a user connected', socket.id);
 
-    let onlineUsers = [];
+
 
     // listen to a connection 
     socket.on('addNewChat', (userId) => {
@@ -25,6 +27,9 @@ io.on('connection', (socket) => {
         });
        // io.emit('getOnlineUsers', onlineUsers);
        console.log('onlineUsers', onlineUsers);
+
+       //emit the online users to the client- All users get this event
+       io.emit('getOnlineUsers', onlineUsers);
     })
 
     // listen to a connection 

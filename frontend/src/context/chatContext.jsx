@@ -19,6 +19,8 @@ export const ChatProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [activeChats, setActiveChats] = useState(new Map());
 
+  console.log('onlineUsers', onlineUsers);
+
   // Initialize socket connection
   useEffect(() => {
     if (accessToken && user) {
