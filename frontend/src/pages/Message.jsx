@@ -20,12 +20,14 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
+import { useChatContext } from '../context/chatContext';
 import axios from 'axios';
 
 const Message = () => {
   const navigate = useNavigate();
   const { chatId } = useParams();
   const { accessToken, user } = useAuth();
+  const { isUserOnline } = useChatContext();
   
   // State management
   const [messages, setMessages] = useState([]);
@@ -34,6 +36,7 @@ const Message = () => {
   const [error, setError] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [otherUserId, setOtherUserId] = useState(null); // Track the other user's ID for online status
 
   // Fetch chat details and messages
   const fetchChatData = async () => {
@@ -71,12 +74,18 @@ const Message = () => {
         messageType: message.messageType,
       }));
 
+      // Extract other user's ID from messages (first message not from current user)
+      const otherUserMessage = messagesResponse.data.messages.find(msg => msg.senderUserId !== currentUserId);
+      if (otherUserMessage) {
+        setOtherUserId(otherUserMessage.senderUserId);
+      }
+
       // Create chat info (you can enhance this with real chat details later)
       const fakeChatInfo = {
         id: chatId,
         name: 'Chat Conversation',
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Chat${chatId}&backgroundColor=8E2DE2`,
-        isOnline: true,
+        isOnline: otherUserMessage ? isUserOnline(otherUserMessage.senderUserId) : false,
       };
 
       setChatInfo(fakeChatInfo);
@@ -241,7 +250,7 @@ const Message = () => {
               {chatInfo?.name || `Chat ${chatId}`}
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8 }}>
-              {chatInfo?.isOnline ? 'Active now' : 'Last seen recently'}
+              {otherUserId && isUserOnline(otherUserId) ? 'Active now' : 'Last seen recently'}
             </Typography>
           </Box>
           

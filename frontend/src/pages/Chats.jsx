@@ -19,11 +19,13 @@ import {
 import { Message as MessageIcon, Schedule as ScheduleIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
+import { useChatContext } from '../context/chatContext';
 import axios from 'axios';
 
 const Chats = () => {
   const navigate = useNavigate();
   const { accessToken } = useAuth();
+  const { isUserOnline, isConnected } = useChatContext();
   
   // State management
   const [chats, setChats] = useState([]);
@@ -79,8 +81,8 @@ const Chats = () => {
           joinedAt: chatMember.joinedAt,
           unreadCount: 0, // API doesn't provide this
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${chatMember.user?.profile?.firstName || 'User'}&backgroundColor=8E2DE2`,
-          isOnline: Math.random() > 0.3, // Higher chance of being online for demo
-          lastSeen: Math.random() > 0.5 ? 'Active now' : 'Last seen 2h ago', // Demo last seen
+          isOnline: isUserOnline(chatMember.userId), // Use real online status from chat context
+          lastSeen: isUserOnline(chatMember.userId) ? 'Active now' : 'Last seen recently', // Real status-based message
           isGroup: false, // This endpoint seems to return individual chat members
           userId: chatMember.userId,
           user: chatMember.user, // Keep full user object if needed
@@ -237,6 +239,41 @@ const Chats = () => {
               }}
             >
               Chats ({chats.length})
+            </Typography>
+          </Box>
+          
+          {/* Connection Status Indicator */}
+          <Box sx={{ 
+            position: 'absolute', 
+            top: { xs: 10, md: 20 }, 
+            right: { xs: 10, md: 20 },
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: isConnected ? '#4CAF50' : '#f44336',
+                animation: isConnected ? 'pulse 2s infinite' : 'none',
+                '@keyframes pulse': {
+                  '0%': { opacity: 1 },
+                  '50%': { opacity: 0.5 },
+                  '100%': { opacity: 1 },
+                },
+              }}
+            />
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: 'white', 
+                fontSize: '0.7rem',
+                opacity: 0.9,
+              }}
+            >
+              {isConnected ? 'Online' : 'Connecting...'}
             </Typography>
           </Box>
         </Box>
