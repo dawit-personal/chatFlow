@@ -19,13 +19,13 @@ import {
 import { Message as MessageIcon, Schedule as ScheduleIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
-import { useChatContext } from '../context/chatContext';
+import { useChat } from '../context/chatContext';
 import axios from 'axios';
 
 const Chats = () => {
   const navigate = useNavigate();
   const { accessToken } = useAuth();
-  const { isUserOnline, isConnected } = useChatContext();
+  const { isConnected, onlineUsers } = useChat();
   
   // State management
   const [chats, setChats] = useState([]);
@@ -35,6 +35,11 @@ const Chats = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [pageSize] = useState(10);
+
+  // Create the isUserOnline function locally
+  const isUserOnline = (userId) => {
+    return onlineUsers.has(userId);
+  };
 
   // Fetch chats from API
   const fetchChats = async (pageNum = 1, append = false) => {
@@ -117,7 +122,7 @@ const Chats = () => {
   // Load initial chats
   useEffect(() => {
     fetchChats(1);
-  }, [accessToken]);
+  }, [accessToken, onlineUsers]);
 
   // Handle load more
   const handleLoadMore = () => {

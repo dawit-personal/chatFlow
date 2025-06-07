@@ -20,14 +20,14 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
-import { useChatContext } from '../context/chatContext';
+import { useChat } from '../context/chatContext';
 import axios from 'axios';
 
 const Message = () => {
   const navigate = useNavigate();
   const { chatId } = useParams();
   const { accessToken, user } = useAuth();
-  const { isUserOnline } = useChatContext();
+  const { onlineUsers } = useChat();
   
   // State management
   const [messages, setMessages] = useState([]);
@@ -37,6 +37,11 @@ const Message = () => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [otherUserId, setOtherUserId] = useState(null); // Track the other user's ID for online status
+
+  // Create the isUserOnline function locally
+  const isUserOnline = (userId) => {
+    return onlineUsers.has(userId);
+  };
 
   // Fetch chat details and messages
   const fetchChatData = async () => {

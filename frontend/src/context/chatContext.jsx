@@ -1,204 +1,182 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { io } from 'socket.io-client';
 import { useAuth } from './authContext';
 
-const ChatContext = createContext();
-
-export const useChatContext = () => {
-  const context = useContext(ChatContext);
-  if (!context) {
-    throw new Error('useChatContext must be used within a ChatProvider');
-  }
-  return context;
-};
+// Create a context to share socket and chat-related state across the app
+export const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
-  const { accessToken, user } = useAuth();
+  const { user, accessToken } = useAuth();
+
+  // State to store the socket instance
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   const [activeChats, setActiveChats] = useState(new Map());
 
-  console.log('onlineUsers', onlineUsers);
-
-  // Initialize socket connection
   useEffect(() => {
-    if (accessToken && user) {
-      const SERVER_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
-      
-      const newSocket = io(SERVER_URL, {
-        auth: {
-          token: accessToken,
-          userId: user?.userId,
-        },
-        transports: ['websocket', 'polling'],
-      });
-
-      // Connection event handlers
-      newSocket.on('connect', () => {
-        console.log('Connected to chat server');
-        setIsConnected(true);
-        newSocket.emit('addNewChat', user?.userId);
-      });
-
- 
-
-      newSocket.on('disconnect', () => {
-        console.log('Disconnected from chat server');
-        setIsConnected(false);
-      });
-
-      newSocket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-        setIsConnected(false);
-      });
-
-      newSocket.on('getOnlineUsers', (users) => {
-        setOnlineUsers(new Set(users.map(u => u.userId)));
-      });
-
-
-      // User presence events
-      newSocket.on('user_online', (userId) => {
-        setOnlineUsers(prev => new Set(prev).add(userId));
-      });
-
-      newSocket.on('user_offline', (userId) => {
-        setOnlineUsers(prev => {
-          const updated = new Set(prev);
-          updated.delete(userId);
-          return updated;
-        });
-      });
-
-      newSocket.on('online_users', (users) => {
-        setOnlineUsers(new Set(users));
-      });
-
-      // Message handlers
-      newSocket.on('new_message', (message) => {
-        console.log('New message received:', message);
-        // Update active chats with new message
-        setActiveChats(prev => {
-          const updated = new Map(prev);
-          const chatId = message.chatId;
-          const chatMessages = updated.get(chatId) || [];
-          updated.set(chatId, [...chatMessages, message]);
-          return updated;
-        });
-      });
-
-      newSocket.on('message_read', ({ messageId, chatId, userId }) => {
-        console.log('Message marked as read:', { messageId, chatId, userId });
-        // Update message read status in active chats
-        setActiveChats(prev => {
-          const updated = new Map(prev);
-          const chatMessages = updated.get(chatId) || [];
-          const updatedMessages = chatMessages.map(msg => 
-            msg.id === messageId ? { ...msg, isRead: true } : msg
-          );
-          updated.set(chatId, updatedMessages);
-          return updated;
-        });
-      });
-
-      newSocket.on('typing_start', ({ chatId, userName }) => {
-        console.log(`${userName} is typing in chat ${chatId}`);
-        // Handle typing indicators
-      });
-
-      newSocket.on('typing_stop', ({ chatId, userId }) => {
-        console.log(`User ${userId} stopped typing in chat ${chatId}`);
-        // Handle typing indicators
-      });
-
-      setSocket(newSocket);
-
-      // Cleanup on unmount
-      return () => {
-        newSocket.close();
-        setSocket(null);
-        setIsConnected(false);
-      };
+    // Skip if no auth
+    if (!accessToken || !user?.userId) {
+      console.warn('No access token or user ID — skipping socket setup');
+      return;
     }
-  }, [accessToken, user]);
 
-  // Socket utility functions
-  const joinChat = (chatId) => {
-    if (socket && isConnected) {
-      socket.emit('join_chat', chatId);
-      console.log(`Joined chat: ${chatId}`);
-    }
-  };
+    const SERVER_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    console.log('Connecting to socket server at:', SERVER_URL);
 
-  const leaveChat = (chatId) => {
-    if (socket && isConnected) {
-      socket.emit('leave_chat', chatId);
-      console.log(`Left chat: ${chatId}`);
-    }
-  };
+    // Create socket connection
+    const newSocket = io(SERVER_URL, {
+      auth: {
+        token: accessToken,
+        userId: user.userId,
+      },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,//increases the delay gradually after each failed attempt upto 5 sec
+    });
 
-  const sendMessage = (chatId, content) => {
-    if (socket && isConnected) {
-      const messageData = {
-        chatId,
-        content,
-        timestamp: new Date().toISOString(),
-      };
-      socket.emit('send_message', messageData);
-      console.log('Message sent via socket:', messageData);
-    }
-  };
+    // --- Event Handlers ---
 
-  const markMessageAsRead = (messageId, chatId) => {
-    if (socket && isConnected) {
-      socket.emit('mark_read', { messageId, chatId });
-      console.log(`Marked message ${messageId} as read in chat ${chatId}`);
-    }
-  };
+    // Fires when successfully connected
+    const handleConnect = () => {
+      console.log('✅ Connected to socket');
+      setIsConnected(true);
+      newSocket.emit('addNewChat', user.userId); // Notify server who joined
+      newSocket.emit('getOnlineUsers'); // Request initial online users
+    };
 
-  const startTyping = (chatId) => {
-    if (socket && isConnected) {
-      socket.emit('typing_start', chatId);
-    }
-  };
+    // Fires when disconnected
+    const handleDisconnect = () => {
+      console.log('Disconnected from socket');
+      setIsConnected(false);
+    };
 
-  const stopTyping = (chatId) => {
-    if (socket && isConnected) {
-      socket.emit('typing_stop', chatId);
-    }
-  };
+    // Fires on connection failure
+    const handleConnectError = (error) => {
+      console.error('Socket connection error:', error);
+      setIsConnected(false);
+    };
 
-  const getChatMessages = (chatId) => {
-    return activeChats.get(chatId) || [];
-  };
+    // Online user list received from server
+    const handleOnlineUsers = (users) => {
+      console.log('Received online users:', users);
+      const online = new Set(users.map(u => u.userId));
+      setOnlineUsers(online);
+    };
 
-  const isUserOnline = (userId) => {
-    return onlineUsers.has(userId);
-  };
+    const handleUserOnline = (userId) => {
+      console.log('User online:', userId);
+      setOnlineUsers(prev => new Set(prev).add(userId));
+    };
 
-  const value = {
-    socket,
-    isConnected,
-    onlineUsers,
-    activeChats,
-    // Socket functions
-    joinChat,
-    leaveChat,
-    sendMessage,
-    markMessageAsRead,
-    startTyping,
-    stopTyping,
-    // Utility functions
-    getChatMessages,
-    isUserOnline,
-  };
+    const handleUserOffline = (userId) => {
+      setOnlineUsers(prev => {
+        const updated = new Set(prev);
+        updated.delete(userId);
+        return updated;
+      });
+    };
+
+    // Handle new incoming message
+    const handleNewMessage = (message) => {
+      const { chatId } = message;
+      setActiveChats(prev => {
+        const updated = new Map(prev);
+        const messages = updated.get(chatId) || [];
+        updated.set(chatId, [...messages, message]);
+        return updated;
+      });
+    };
+
+    // Update message read status
+    const handleMessageRead = ({ messageId, chatId }) => {
+      setActiveChats(prev => {
+        const updated = new Map(prev);
+        const messages = updated.get(chatId) || [];
+        const updatedMessages = messages.map(msg =>
+          msg.id === messageId ? { ...msg, isRead: true } : msg
+        );
+        updated.set(chatId, updatedMessages);
+        return updated;
+      });
+    };
+
+    // Typing indicators (you can extend this to show UI changes)
+    const handleTypingStart = ({ chatId, userName }) => {
+      console.log(`${userName} is typing in chat ${chatId}`);
+    };
+
+    const handleTypingStop = ({ chatId, userId }) => {
+      console.log(`User ${userId} stopped typing in chat ${chatId}`);
+    };
+
+    // --- Register socket event listeners ---
+    newSocket.on('connect', handleConnect);
+    newSocket.on('disconnect', handleDisconnect);
+    newSocket.on('connect_error', handleConnectError);
+    newSocket.on('getOnlineUsers', handleOnlineUsers);
+    newSocket.on('user_online', handleUserOnline);
+    newSocket.on('user_offline', handleUserOffline);
+    newSocket.on('new_message', handleNewMessage);
+    newSocket.on('message_read', handleMessageRead);
+    newSocket.on('typing_start', handleTypingStart);
+    newSocket.on('typing_stop', handleTypingStop);
+
+    // Poll online users every 30 seconds
+    //acts as a safety net to sync the client with the server's onlineUsers state.
+    // it also ahndel edge case where issues like missed events during Socket.IO reconnections, server restarts,
+    //  or temporary network drops, which are common in real-world scenarios with TCP-based WebSocket connections.
+    //tradeoffs:increasing network traffic, especially with many concurrent users and delay updates, battery udage
+    // const pollOnlineUsers = setInterval(() => {
+    //   newSocket.emit('getOnlineUsers');
+    // }, 30000);
+
+    setSocket(newSocket);
+
+    // --- Cleanup function ---
+    return () => {
+      //clearInterval(pollOnlineUsers);
+      // 🧼 Use socket.off() to clean up listeners so they don't stack on re-render or re-mount
+      newSocket.off('connect', handleConnect);
+      newSocket.off('disconnect', handleDisconnect);
+      newSocket.off('connect_error', handleConnectError);
+      newSocket.off('getOnlineUsers', handleOnlineUsers);
+      newSocket.off('user_online', handleUserOnline);
+      newSocket.off('user_offline', handleUserOffline);
+      newSocket.off('new_message', handleNewMessage);
+      newSocket.off('message_read', handleMessageRead);
+      newSocket.off('typing_start', handleTypingStart);
+      newSocket.off('typing_stop', handleTypingStop);
+
+      // 👋 Close connection and reset state
+      newSocket.close();
+      setSocket(null);
+      setIsConnected(false);
+    };
+  }, [accessToken, user?.userId]);
 
   return (
-    <ChatContext.Provider value={value}>
+    <ChatContext.Provider
+      value={{
+        socket,
+        isConnected,
+        onlineUsers,
+        activeChats,
+        setActiveChats,
+      }}
+    >
       {children}
     </ChatContext.Provider>
   );
 };
 
-export default ChatContext; 
+// ✅ Custom hook for easier context usage in components
+export const useChat = () => {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error('useChat must be used within a ChatProvider');
+  }
+  return context;
+};

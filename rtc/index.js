@@ -25,15 +25,19 @@ io.on('connection', (socket) => {
           userId,
           socketId: socket.id,
         });
-       // io.emit('getOnlineUsers', onlineUsers);
-       console.log('onlineUsers', onlineUsers);
 
+        // Emit to all clients, including sender
+        io.emit('user_online', userId);
+       // io.emit('getOnlineUsers', onlineUsers);
+       console.log('User disconnected:', socket.id, 'onlineUsers:', onlineUsers);
+       io.emit('user_offline', userId);
        //emit the online users to the client- All users get this event
        io.emit('getOnlineUsers', onlineUsers);
     })
 
     socket.on('disconnect', () => {
       onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id);
+      
       io.emit('getOnlineUsers', onlineUsers);
       console.log(`User disconnected: ${socket.id}`);
     });
@@ -41,4 +45,4 @@ io.on('connection', (socket) => {
 });
 
 
-io.listen(5000);
+io.listen(5000, () => console.log('Socket.IO server running on port 5000'));
