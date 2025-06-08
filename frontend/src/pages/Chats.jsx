@@ -23,7 +23,7 @@ import {
   Schedule as ScheduleIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
-  PersonAdd as PersonAddIcon
+  ChatBubble as ChatBubbleIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
@@ -84,7 +84,6 @@ const Chats = () => {
         const transformedResults = response.data.map((user, index) => ({
           id: `search-${index}`, // Temporary ID for React keys
           firstName: user.firstName || 'Unknown',
-          lastName: user.lastName || '',
           userId: user.userId, // Extract userId from API response
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'User'}&backgroundColor=8E2DE2`,
           isOnline: user.userId ? isUserOnline(user.userId) : false,
@@ -161,15 +160,52 @@ const Chats = () => {
     try {
       console.log('Starting conversation with user:', {
         firstName: user.firstName,
-        lastName: user.lastName,
         userId: user.userId
       });
+
+      if (!accessToken) {
+        setError('No access token found. Please log in again.');
+        navigate('/login');
+        return;
+      }
+
+      const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
       
-      // Here you would typically create a new chat/conversation using the userId
-      // For now, we'll just show a message with the userId
-      alert(`Starting conversation with ${user.firstName} ${user.lastName}\nUser ID: ${user.userId}`);
+      // Create new conversation
+      const response = await axios.post(`${API_ENDPOINT}/conversations`, {
+        isGroup: false,
+        name: `${user.firstName}_chat`,
+        participantId: user.userId,
+        message: `Hello ${user.firstName}`
+      }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Conversation created:', response.data);
+
+      // Navigate to the new chat
+      if (response.data && response.data.chatId) {
+        navigate(`/message/${response.data.chatId}`);
+      } else if (response.data && response.data.id) {
+        navigate(`/message/${response.data.id}`);
+      } else {
+        // If response structure is different, refresh chats and navigate to chats page
+        console.log('Chat created successfully, refreshing chat list');
+        fetchChats(1);
+        navigate('/chats');
+      }
+
     } catch (error) {
       console.error('Failed to start conversation:', error);
+      if (error.response?.status === 401) {
+        setError('Session expired. Please log in again.');
+        navigate('/login');
+      } else {
+        setError(`Failed to start conversation with ${user.firstName}. Please try again.`);
+      }
     }
   };
 
@@ -614,7 +650,7 @@ const Chats = () => {
                               lineHeight: 1.2,
                             }}
                           >
-                            {chat.isGroup ? chat.name : `${chat.firstName} ${chat.lastName}`}
+                            {chat.isSearchResult ? chat.firstName : (chat.isGroup ? chat.name : `${chat.firstName} ${chat.lastName}`)}
                           </Typography>
                           {chat.isOnline && (
                             <Chip
@@ -767,7 +803,7 @@ const Chats = () => {
                             borderRadius: 2,
                             px: 2,
                             py: 1,
-                            minWidth: '80px',
+                            minWidth: '100px',
                             boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)',
                             '&:hover': {
                               background: 'linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%)',
@@ -780,8 +816,8 @@ const Chats = () => {
                             transition: 'all 0.2s ease',
                           }}
                         >
-                          <PersonAddIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
-                          Add
+                          <ChatBubbleIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
+                          Start Chat
                         </Button>
                       </ListItemSecondaryAction>
                     ) : (
