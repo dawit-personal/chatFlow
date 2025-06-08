@@ -72,25 +72,26 @@ const Message = () => {
       const transformedMessages = messagesResponse.data.messages.map(message => ({
         id: message.id,
         content: message.content,
-        senderId: message.senderUserId,
-        timestamp: new Date(message.timestamp),
-        isMe: message.senderUserId === currentUserId,
-        isRead: message.isRead,
-        messageType: message.messageType,
+        senderId: message.senderId,
+        timestamp: new Date(message.timestamp || Date.now()), // Use current time if timestamp is missing
+        isMe: message.senderId === currentUserId,
+        isRead: message.isRead || false, // Default to false if not provided
+        messageType: message.messageType || 'text',
+        senderName: message.sender ? `${message.sender.firstName} ${message.sender.lastName}`.trim() : 'Unknown',
       }));
 
       // Extract other user's ID from messages (first message not from current user)
-      const otherUserMessage = messagesResponse.data.messages.find(msg => msg.senderUserId !== currentUserId);
+      const otherUserMessage = messagesResponse.data.messages.find(msg => msg.senderId !== currentUserId);
       if (otherUserMessage) {
-        setOtherUserId(otherUserMessage.senderUserId);
+        setOtherUserId(otherUserMessage.senderId);
       }
 
-      // Create chat info (you can enhance this with real chat details later)
+      // fask info to make make the UI look better and more user friendly
       const fakeChatInfo = {
         id: chatId,
         name: 'Chat Conversation',
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Chat${chatId}&backgroundColor=8E2DE2`,
-        isOnline: otherUserMessage ? isUserOnline(otherUserMessage.senderUserId) : false,
+        isOnline: otherUserMessage ? isUserOnline(otherUserMessage.senderId) : false,
       };
 
       setChatInfo(fakeChatInfo);
