@@ -73,25 +73,45 @@ const Message = () => {
         id: message.id,
         content: message.content,
         senderId: message.senderId,
+        recipientId: message.recipientId,
         timestamp: new Date(message.timestamp || Date.now()), // Use current time if timestamp is missing
+        // Message is "mine" if current user is the sender
         isMe: message.senderId === currentUserId,
         isRead: message.isRead || false, // Default to false if not provided
         messageType: message.messageType || 'text',
         senderName: message.sender ? `${message.sender.firstName} ${message.sender.lastName}`.trim() : 'Unknown',
+        senderFirstName: message.sender?.firstName || 'Unknown',
+        senderLastName: message.sender?.lastName || '',
       }));
 
-      // Extract other user's ID from messages (first message not from current user)
-      const otherUserMessage = messagesResponse.data.messages.find(msg => msg.senderId !== currentUserId);
-      if (otherUserMessage) {
-        setOtherUserId(otherUserMessage.senderId);
+      // Determine the other user's ID (the one who is not the current user)
+      // Check both sender and recipient to find the other participant
+      let otherUser = null;
+      for (const message of messagesResponse.data.messages) {
+        if (message.senderId !== currentUserId) {
+          otherUser = message.senderId;
+          break;
+        } else if (message.recipientId !== currentUserId) {
+          otherUser = message.recipientId;
+          break;
+        }
+      }
+      
+      if (otherUser) {
+        setOtherUserId(otherUser);
       }
 
-      // fask info to make make the UI look better and more user friendly
+      // Create chat info using sender information from the first message
+      const firstMessage = messagesResponse.data.messages[0];
+      const chatDisplayName = firstMessage?.sender 
+        ? `${firstMessage.sender.firstName} ${firstMessage.sender.lastName}`.trim()
+        : 'Chat Conversation';
+
       const fakeChatInfo = {
         id: chatId,
-        name: 'Chat Conversation',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=Chat${chatId}&backgroundColor=8E2DE2`,
-        isOnline: otherUserMessage ? isUserOnline(otherUserMessage.senderId) : false,
+        name: chatDisplayName,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${chatDisplayName}&backgroundColor=8E2DE2`,
+        isOnline: otherUser ? isUserOnline(otherUser) : false,
       };
 
       setChatInfo(fakeChatInfo);
