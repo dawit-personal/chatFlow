@@ -52,6 +52,24 @@ class UserProfileRepository {
     });
   }
 
+  async findAllUsersAndProfiles(userIds = []) {
+    return await UserProfile.findAll({
+      where: {
+        userId: userIds, // Sequelize handles this array
+      },
+      attributes: ['userId', 'firstName', 'lastName', 'profilePicture'], // customize as needed
+      include: [
+        {
+          model: User,
+          as: 'user',
+          required: true,
+          attributes: ['email'],
+        },
+      ],
+      raw: true,
+    });
+  }
+
   async findAllUsersByFirstName(firstName, attributes = null) {
     return await UserProfile.findAll({
       where: {
@@ -63,6 +81,8 @@ class UserProfileRepository {
       raw: true,
     });
   }
+
+
 }
 
 module.exports = new UserProfileRepository();

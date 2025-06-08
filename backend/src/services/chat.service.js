@@ -3,6 +3,7 @@ const chatMemberRepository = require('../repositories/chatMember.repository');
 const messageRepository = require('../repositories/message.repository');
 const messageStatusRepository = require('../repositories/messageStatus.repository');
 const DBService = require('./db.service');
+const userProfileRepository = require('../repositories/userProfile.repository');
 
 
 // @desc    create a chat
@@ -98,7 +99,6 @@ const getChats = async ({ userId, page, pageSize }) => {
 
   const chatIds = chats.map(chat => chat.id);
 
-  console.log('🔄 chatIds', chatIds);
 
   return await chatMemberRepository.findAllChatMembersByName({ userId, chatIds, offset, limit });
 };
@@ -107,13 +107,66 @@ const getChats = async ({ userId, page, pageSize }) => {
 //@route   GET /conversation/:id/messages
 //@access  Private
 const getMessages = async ({ chatId, userId }) => {
+
+  // Step 1: Find all members in the chat
+  const chatMembers = await chatMemberRepository.findAllChatMembers(
+    { chatId },
+    ['userId'],
+    { offset: 0, limit: 10 }
+  );
+  console.log('🔄 chatMembers', chatMembers);
+
+  const userIds = chatMembers.map(member => member.userId);
+
+  if (!userIds.includes(userId)) {
+    throw new Error('User does not belong to this chat');
+  }
+
+  // Step 2: Fetch user profiles for all members
+  const users = await userProfileRepository.findAllUsersAndProfiles(userIds);
+
+  console.log('🔄 users', users);
+
+  const userMap = {};
+  users.forEach(u => {
+    userMap[u.userId] = {
+      firstName: u.firstName,
+      lastName: u.lastName,
+    };
+  });
+
+  // Step 3: Fetch messages
   const messages = await messageRepository.findAllMessages({
     where: { chatId },
     limit: 15,
-    offset: 0
+    offset: 0,
+    order: [['timestamp', 'ASC']],
   });
-  return messages || null;
+
+  console.log('🔄 messages', messages);
+  
+  // Step 4: Format and label messages
+  const formattedMessages = messages.map(msg => {
+    const isSent = msg.userId === userId;
+    console.log(`Message ID: ${msg.id}, msg.userId: ${msg.userId}, loggedInUserId: ${userId}, direction: ${isSent ? 'sent' : 'received'}`);
+  
+    return {
+      id: msg.id,
+      content: msg.content,
+      createdAt: msg.createdAt,
+      senderId: msg.senderUserId,
+      sender: {
+        userId: msg.userId,
+        firstName: userMap[msg.userId]?.firstName || 'Unknown',
+        lastName: userMap[msg.userId]?.lastName || '',
+      },
+      direction: isSent ? 'sent' : 'received',
+    };
+  });
+  
+  return formattedMessages;
 };
+
 
 //@desc    send message to a chat
 //@route   POST /conversations/:id/messages

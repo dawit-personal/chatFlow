@@ -36,23 +36,18 @@ class ChatMemberRepository {
     return await ChatMember.count();
   }
 
-  async findChatMember(where = {}, attributes = null) {
-    return await ChatMember.findOne({
+  async findAllChatMembers(where = {}, attributes = null, options = {}) {
+    const { offset = 0, limit = 10, order = [['joinedAt', 'DESC']] } = options;
+    return await ChatMember.findAll({
       where,
-      attributes: attributes || null,
+      attributes: attributes || undefined,
+      offset,
+      limit,
+      order,
       raw: true,
     });
   }
 
-  async findAllChatMembers({ where = {}, offset = 0, limit = 10 }) {
-    return await ChatMember.findAll({
-      where,
-      offset,
-      limit,
-      order: [['updatedAt', 'DESC']],
-      raw: true,
-    });
-  }
   async findAllChatMembersByName({ userId, chatIds, offset = 0, limit = 10 }) {
 
     if (!chatIds || !Array.isArray(chatIds) || chatIds.length === 0) {
