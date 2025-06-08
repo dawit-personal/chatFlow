@@ -14,7 +14,7 @@ const getUserById = async (userId) => {
 };
 
 const searchByFirstName = async (firstName, attributes = null) => {
-  const users = await userProfileRepository.findAllUsersByFirstName(firstName, ['firstName']);
+  const users = await userProfileRepository.findAllUsersByFirstName(firstName, ['firstName', 'userId']);
   return users;
 }
 

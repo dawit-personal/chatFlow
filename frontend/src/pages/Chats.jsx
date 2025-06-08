@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -22,7 +22,8 @@ import {
   Message as MessageIcon, 
   Schedule as ScheduleIcon,
   Search as SearchIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
@@ -43,15 +44,69 @@ const Chats = () => {
   const [hasMore, setHasMore] = useState(true);
   const [pageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  
+  // Search timeout ref for debouncing
+  const searchTimeoutRef = useRef(null);
 
   // Create the isUserOnline function locally
   const isUserOnline = (userId) => {
     return onlineUsers.has(userId);
   };
 
-  // Filter chats based on search query
+  // Search users via API
+  const searchUsers = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setIsSearchMode(false);
+      return;
+    }
+
+    setSearchLoading(true);
+    setIsSearchMode(true);
+
+    try {
+      const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
+      
+      const response = await axios.post(`${API_ENDPOINT}/users/search`, {
+        firstName: query.trim()
+      }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.data) {
+        // Transform search results to include additional display info
+        const transformedResults = response.data.map((user, index) => ({
+          id: `search-${index}`, // Temporary ID for React keys
+          firstName: user.firstName || 'Unknown',
+          lastName: user.lastName || '',
+          userId: user.userId, // Extract userId from API response
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.firstName || 'User'}&backgroundColor=8E2DE2`,
+          isOnline: user.userId ? isUserOnline(user.userId) : false,
+          isSearchResult: true,
+        }));
+        
+        setSearchResults(transformedResults);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Failed to search users:', error);
+      setSearchResults([]);
+      setError('Failed to search users. Please try again.');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Filter chats based on search query (for existing chats)
   const filteredChats = chats.filter(chat => {
-    if (!searchQuery.trim()) return true;
+    if (!searchQuery.trim() || isSearchMode) return true;
     
     const searchTerm = searchQuery.toLowerCase().trim();
     const firstName = chat.firstName?.toLowerCase() || '';
@@ -65,13 +120,62 @@ const Chats = () => {
 
   // Handle search input change
   const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+    const query = event.target.value;
+    setSearchQuery(query);
+    
+    // Debounce the API call
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      searchUsers(query);
+    }, 500); // Wait 500ms after user stops typing
   };
 
   // Clear search
   const handleClearSearch = () => {
     setSearchQuery('');
+    setSearchResults([]);
+    setIsSearchMode(false);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
   };
+
+  // Handle find button click
+  const handleFindClick = () => {
+    if (searchQuery.trim()) {
+      searchUsers(searchQuery);
+    } else {
+      // Focus the search input when find button is clicked
+      const searchInput = document.querySelector('input[placeholder="Search users by name..."]');
+      if (searchInput) {
+        searchInput.focus();
+      }
+    }
+  };
+
+  // Handle adding a user (start a conversation)
+  const handleAddUser = async (user) => {
+    try {
+      console.log('Starting conversation with user:', {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        userId: user.userId
+      });
+      
+      // Here you would typically create a new chat/conversation using the userId
+      // For now, we'll just show a message with the userId
+      alert(`Starting conversation with ${user.firstName} ${user.lastName}\nUser ID: ${user.userId}`);
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+    }
+  };
+
+  // Determine what to display
+  const displayData = isSearchMode ? searchResults : filteredChats;
+  const displayCount = isSearchMode ? searchResults.length : filteredChats.length;
 
   // Fetch chats from API
   const fetchChats = async (pageNum = 1, append = false) => {
@@ -278,7 +382,7 @@ const Chats = () => {
                 fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
               }}
             >
-              Chats ({filteredChats.length})
+              Chats ({displayCount})
             </Typography>
           </Box>
           
@@ -404,13 +508,7 @@ const Chats = () => {
                 },
                 transition: 'all 0.2s ease',
               }}
-              onClick={() => {
-                // Focus the search input when find button is clicked
-                const searchInput = document.querySelector('input[placeholder="Search users by name..."]');
-                if (searchInput) {
-                  searchInput.focus();
-                }
-              }}
+              onClick={handleFindClick}
             >
               <SearchIcon sx={{ 
                 color: 'white', 
@@ -430,14 +528,21 @@ const Chats = () => {
                 fontSize: '0.75rem',
               }}
             >
-              {filteredChats.length} user{filteredChats.length !== 1 ? 's' : ''} found
+              {displayCount} user{displayCount !== 1 ? 's' : ''} found
             </Typography>
           )}
         </Box>
 
         {/* Chats List */}
         <Box sx={{ p: 0 }}>
-          {filteredChats.length === 0 && !loading ? (
+          {searchLoading ? (
+            <Box sx={{ textAlign: 'center', py: 6 }}>
+              <CircularProgress size={40} sx={{ color: '#8E2DE2', mb: 2 }} />
+              <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                Searching users...
+              </Typography>
+            </Box>
+          ) : displayData.length === 0 && !loading ? (
             <Box sx={{ textAlign: 'center', py: 6 }}>
               <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 1 }}>
                 {searchQuery ? 'No users found' : 'No chats found'}
@@ -451,7 +556,7 @@ const Chats = () => {
             </Box>
           ) : (
             <List sx={{ width: '100%', bgcolor: 'transparent', p: 0 }}>
-              {filteredChats.map((chat, index) => (
+              {displayData.map((chat, index) => (
                 <React.Fragment key={chat.id}>
                   <ListItem
                     sx={{
@@ -466,7 +571,7 @@ const Chats = () => {
                         backgroundColor: 'rgba(142, 45, 226, 0.12)',
                       },
                     }}
-                    onClick={() => handleChatClick(chat.id)}
+                    onClick={chat.isSearchResult ? undefined : () => handleChatClick(chat.id)}
                   >
                     <ListItemAvatar sx={{ mr: { xs: 1.5, md: 2 } }}>
                       <Badge
@@ -555,6 +660,21 @@ const Chats = () => {
                               }}
                             />
                           )}
+                          {chat.isSearchResult && (
+                            <Chip
+                              label="Search Result"
+                              size="small"
+                              sx={{
+                                height: '18px',
+                                fontSize: '0.65rem',
+                                backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                                color: '#42A5F5',
+                                '& .MuiChip-label': {
+                                  px: 1,
+                                },
+                              }}
+                            />
+                          )}
                         </Box>
                       }
                       secondary={
@@ -567,87 +687,123 @@ const Chats = () => {
                               lineHeight: 1.3,
                             }}
                           >
-                            {chat.lastMessage}
+                            {chat.isSearchResult ? 'Click Add to start a conversation' : chat.lastMessage}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                              <ScheduleIcon sx={{ 
-                                fontSize: '0.875rem', 
-                                color: 'rgba(255, 255, 255, 0.4)' 
-                              }} />
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  color: 'rgba(255, 255, 255, 0.4)',
-                                  fontSize: { xs: '0.75rem', md: '0.8rem' },
-                                  fontWeight: 400,
-                                }}
-                              >
-                                Joined {chat.timestamp}
-                              </Typography>
-                            </Box>
-                            {!chat.isOnline && (
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  color: 'rgba(255, 255, 255, 0.5)',
-                                  fontSize: { xs: '0.7rem', md: '0.75rem' },
-                                  fontStyle: 'italic',
-                                }}
-                              >
-                                {chat.lastSeen}
-                              </Typography>
-                            )}
-                            {chat.isOnline && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                                <Box
-                                  sx={{
-                                    width: 6,
-                                    height: 6,
-                                    borderRadius: '50%',
-                                    backgroundColor: '#4CAF50',
-                                    animation: 'blink 1.5s infinite',
-                                    '@keyframes blink': {
-                                      '0%, 50%': { opacity: 1 },
-                                      '51%, 100%': { opacity: 0.3 },
-                                    },
-                                  }}
-                                />
+                          {!chat.isSearchResult && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <ScheduleIcon sx={{ 
+                                  fontSize: '0.875rem', 
+                                  color: 'rgba(255, 255, 255, 0.4)' 
+                                }} />
                                 <Typography
                                   variant="caption"
                                   sx={{
-                                    color: '#4CAF50',
-                                    fontSize: { xs: '0.7rem', md: '0.75rem' },
-                                    fontWeight: 500,
+                                    color: 'rgba(255, 255, 255, 0.4)',
+                                    fontSize: { xs: '0.75rem', md: '0.8rem' },
+                                    fontWeight: 400,
                                   }}
                                 >
-                                  Active now
+                                  Joined {chat.timestamp}
                                 </Typography>
                               </Box>
-                            )}
-                          </Box>
+                              {!chat.isOnline && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    fontSize: { xs: '0.7rem', md: '0.75rem' },
+                                    fontStyle: 'italic',
+                                  }}
+                                >
+                                  {chat.lastSeen}
+                                </Typography>
+                              )}
+                              {chat.isOnline && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                                  <Box
+                                    sx={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: '50%',
+                                      backgroundColor: '#4CAF50',
+                                      animation: 'blink 1.5s infinite',
+                                      '@keyframes blink': {
+                                        '0%, 50%': { opacity: 1 },
+                                        '51%, 100%': { opacity: 0.3 },
+                                      },
+                                    }}
+                                  />
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      color: '#4CAF50',
+                                      fontSize: { xs: '0.7rem', md: '0.75rem' },
+                                      fontWeight: 500,
+                                    }}
+                                  >
+                                    Active now
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          )}
                         </Box>
                       }
                     />
                     
-                    {chat.unreadCount > 0 && (
+                    {/* Add button for search results, unread count for existing chats */}
+                    {chat.isSearchResult ? (
                       <ListItemSecondaryAction>
-                        <Badge
-                          badgeContent={chat.unreadCount}
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => handleAddUser(chat)}
                           sx={{
-                            '& .MuiBadge-badge': {
-                              backgroundColor: '#8E2DE2',
-                              color: 'white',
-                              fontWeight: 600,
-                              fontSize: '0.7rem',
+                            background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
+                            color: 'white',
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            borderRadius: 2,
+                            px: 2,
+                            py: 1,
+                            minWidth: '80px',
+                            boxShadow: '0 2px 8px rgba(76, 175, 80, 0.3)',
+                            '&:hover': {
+                              background: 'linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%)',
+                              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4)',
+                              transform: 'translateY(-1px)',
                             },
+                            '&:active': {
+                              transform: 'translateY(0px)',
+                            },
+                            transition: 'all 0.2s ease',
                           }}
-                        />
+                        >
+                          <PersonAddIcon sx={{ fontSize: '1rem', mr: 0.5 }} />
+                          Add
+                        </Button>
                       </ListItemSecondaryAction>
+                    ) : (
+                      chat.unreadCount > 0 && (
+                        <ListItemSecondaryAction>
+                          <Badge
+                            badgeContent={chat.unreadCount}
+                            sx={{
+                              '& .MuiBadge-badge': {
+                                backgroundColor: '#8E2DE2',
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '0.7rem',
+                              },
+                            }}
+                          />
+                        </ListItemSecondaryAction>
+                      )
                     )}
                   </ListItem>
                   
-                  {index < filteredChats.length - 1 && (
+                  {index < displayData.length - 1 && (
                     <Divider 
                       sx={{ 
                         mx: { xs: 2, sm: 3, md: 4 },
@@ -660,8 +816,8 @@ const Chats = () => {
             </List>
           )}
 
-          {/* Load More Button */}
-          {hasMore && filteredChats.length > 0 && (
+          {/* Load More Button - only show for existing chats, not search results */}
+          {!isSearchMode && hasMore && displayData.length > 0 && (
             <Box sx={{ 
               p: { xs: 2, sm: 3, md: 4 }, 
               pt: { xs: 3, md: 4 },
