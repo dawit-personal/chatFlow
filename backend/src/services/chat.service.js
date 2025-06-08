@@ -92,12 +92,15 @@ const getChat = async (data) => {
 const getChats = async ({ userId, page, pageSize }) => {
   const offset = (page - 1) * pageSize;
   const limit = pageSize;
-  const chats = await chatRepository.getAllChats({ userId }, ['id']);
-  if (!chats || chats?.length === 0) {
+  const options = { offset, limit, order: [['joinedAt', 'DESC']] };
+  const chatsMembers= await chatMemberRepository.findAllChatMembers({userId}, null, options);
+  if (!chatsMembers || chatsMembers?.length === 0) {
     return [];
   }
 
-  const chatIds = chats.map(chat => chat.id);
+    console.log('🔄 chatsMembers', chatsMembers);
+
+  const chatIds = chatsMembers.map(chat =>  chat.chatId);
 
 
   return await chatMemberRepository.findAllChatMembersByName({ userId, chatIds, offset, limit });
