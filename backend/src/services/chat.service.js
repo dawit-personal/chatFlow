@@ -202,8 +202,32 @@ const getChats = async ({ userId, page, pageSize }) => {
 
   const chatIds = chatsMembers.map(chat =>  chat.chatId);
 
+  // Step 1: Get chat metadata (isGroup, name)
+  const chats = await chatRepository.findChatsByIds(chatIds); 
 
-  return await chatMemberRepository.findAllChatMembersByName({ userId, chatIds, offset, limit });
+  const results = await Promise.all(
+    chats.map(async (chat) => {
+      if (chat.isGroup) {
+        return {
+          id: chat.id,
+          name: chat.name,
+          isGroup: true,
+        };
+      } else {
+        // 1:1 chat — get member info
+        const members = await chatMemberRepository.findAllChatMembersByName({
+          userId,
+          chatIds: [chat.id], // just this chat
+          offset: 0,
+          limit: 1, // you only need one record per chat
+        });
+
+        return members[0]; // or structure it however your frontend expects
+      }
+    })
+  );
+
+  return results;
 };
 
 //@desc    get messages for a chat

@@ -1,4 +1,5 @@
 const { Chat, ChatMember } = require('../../db/models');
+const { Op } = require('sequelize');
 
 class ChatRepository {
   async createChat(data, options = {}) {
@@ -59,6 +60,21 @@ class ChatRepository {
       }]
     });
   }
+
+  async findChatsByIds(chatIds) {
+    if (!Array.isArray(chatIds) || chatIds.length === 0) {
+      return [];
+    }
+  
+    return await Chat.findAll({
+      where: {
+        id: {
+          [Op.in]: chatIds
+        }
+      },
+      attributes: ['id', 'isGroup', 'name'] // Adjust attributes as needed
+    });
+  };
 }
 
 module.exports = new ChatRepository();
