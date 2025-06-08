@@ -9,8 +9,12 @@ class ChatRepository {
     return await Chat.findByPk(id);
   }
 
-  async getAllChats() {
-    return await Chat.findAll();
+  async getAllChats(where = {}, attributes = null) {
+    return await Chat.findAll({
+      where,
+      attributes: attributes || null,
+      raw: true,
+    });
   }
 
   async updateChat(id, updates, options = {}) {

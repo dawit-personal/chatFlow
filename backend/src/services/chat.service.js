@@ -91,11 +91,16 @@ const getChat = async (data) => {
 const getChats = async ({ userId, page, pageSize }) => {
   const offset = (page - 1) * pageSize;
   const limit = pageSize;
-  const chat = await chatRepository.findChat({ userId }, ['id']);
-  if(!chat){
-    return []
+  const chats = await chatRepository.getAllChats({ userId }, ['id']);
+  if (!chats || chats?.length === 0) {
+    return [];
   }
-  return await chatMemberRepository.findAllChatMembersByName({ userId, chatId: chat?.id, offset, limit });
+
+  const chatIds = chats.map(chat => chat.id);
+
+  console.log('🔄 chatIds', chatIds);
+
+  return await chatMemberRepository.findAllChatMembersByName({ userId, chatIds, offset, limit });
 };
 
 //@desc    get messages for a chat

@@ -53,20 +53,26 @@ class ChatMemberRepository {
       raw: true,
     });
   }
-  async findAllChatMembersByName({ userId, chatId, offset = 0, limit = 10 }) {
+  async findAllChatMembersByName({ userId, chatIds, offset = 0, limit = 10 }) {
+
+    if (!chatIds || !Array.isArray(chatIds) || chatIds.length === 0) {
+      // If no chatIds provided, return empty array early
+      return [];
+    }
+    
     return await ChatMember.findAll({
       where: {
         userId: { [Op.ne]: userId },  // exclude current user
-        chatId: chatId,
+        chatId: { [Op.in]: chatIds }, // accept array of chatIds
       },
       include: [
         {
           model: User,
-          as: 'user',  // make sure this matches your association alias in ChatMember model
+          as: 'user',  // matches ChatMember association alias
           include: [
             {
               model: UserProfile,
-              as: 'profile', // this alias should match the UserProfile -> User association
+              as: 'profile', // matches UserProfile association alias
               attributes: ['firstName', 'lastName'],
             },
           ],
@@ -76,7 +82,7 @@ class ChatMemberRepository {
       limit,
       order: [['joinedAt', 'DESC']],
     });
-}
+  }
 
 }
 
