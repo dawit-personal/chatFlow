@@ -107,14 +107,12 @@ const getChats = async ({ userId, page, pageSize }) => {
 //@route   GET /conversation/:id/messages
 //@access  Private
 const getMessages = async ({ chatId, userId }) => {
-
-  // Step 1: Find all members in the chat
+  // Step 1: Get chat members
   const chatMembers = await chatMemberRepository.findAllChatMembers(
     { chatId },
     ['userId'],
     { offset: 0, limit: 10 }
   );
-  console.log('🔄 chatMembers', chatMembers);
 
   const userIds = chatMembers.map(member => member.userId);
 
@@ -122,20 +120,19 @@ const getMessages = async ({ chatId, userId }) => {
     throw new Error('User does not belong to this chat');
   }
 
-  // Step 2: Fetch user profiles for all members
+  // Step 2: Get user profiles
   const users = await userProfileRepository.findAllUsersAndProfiles(userIds);
-
-  console.log('🔄 users', users);
 
   const userMap = {};
   users.forEach(u => {
     userMap[u.userId] = {
+      userId: u.userId,
       firstName: u.firstName,
       lastName: u.lastName,
     };
   });
 
-  // Step 3: Fetch messages
+  // Step 3: Get messages
   const messages = await messageRepository.findAllMessages({
     where: { chatId },
     limit: 15,
@@ -143,29 +140,35 @@ const getMessages = async ({ chatId, userId }) => {
     order: [['timestamp', 'ASC']],
   });
 
-  console.log('🔄 messages', messages);
-  
-  // Step 4: Format and label messages
+  const otherUserId = userIds.find(id => id !== userId);
+
+  // Step 4: Format messages
   const formattedMessages = messages.map(msg => {
+    console.log('🔄 msg', msg);
     const isSent = msg.userId === userId;
-    console.log(`Message ID: ${msg.id}, msg.userId: ${msg.userId}, loggedInUserId: ${userId}, direction: ${isSent ? 'sent' : 'received'}`);
-  
+    const senderId = msg.senderUserId;
+    const recipientId = isSent ? otherUserId : userId;
+    const senderInfo = userMap[senderId] || {
+      userId: senderId,
+      firstName: 'Unknown',
+      lastName: '',
+    };
+
     return {
       id: msg.id,
       content: msg.content,
       createdAt: msg.createdAt,
-      senderId: msg.senderUserId,
-      sender: {
-        userId: msg.userId,
-        firstName: userMap[msg.userId]?.firstName || 'Unknown',
-        lastName: userMap[msg.userId]?.lastName || '',
-      },
+      senderId,
+      recipientId,
+      sender: senderInfo,
       direction: isSent ? 'sent' : 'received',
     };
   });
-  
+
   return formattedMessages;
 };
+
+
 
 
 //@desc    send message to a chat
