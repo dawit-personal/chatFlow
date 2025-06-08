@@ -6,9 +6,19 @@ async function createChat(req, res, next) {
     try {
         const userId = req.user.userId;
         const data = req.body;
-        const chat = await chatService.createChat({...data, userId});
+        let result;
+        if(data.isGroup){
+            result = await chatService.createGroupChat({...data, userId});
+        }else{
+            result = await chatService.createChat({...data, userId});
+        }
+
+        if (!result.success) {
+          return res.status(400).json({ message: result.message });
+        }
+        
         return res.status(201).json({
-            chat,
+            chat: result.chat,
             message: 'Success',
        
         });

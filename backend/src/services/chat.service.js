@@ -30,18 +30,127 @@ const userProfileRepository = require('../repositories/userProfile.repository');
 //   return chat || null;
 // };
 
+// @desc    create a group chat
+// @param   userId - ID of the user
+// @returns chat object
+
+
+  const createGroupChat = async (data) => {
+    console.log('🔄 createGroupChat called', data);
+  
+    const { userId, isGroup, name, message, participantIds: initialParticipantIds } = data;
+    let participantIds = initialParticipantIds;  
+
+    console.log('🔄 participantIds', participantIds);
+  
+    if (!isGroup) {
+      return { success: false, message: 'Invalid route: use createChat for 1:1 chats.' };
+    }
+  
+     // Ensure participantIds is always an array
+    if (!Array.isArray(participantIds)) {
+      return { success: false, message: 'participantIds must be an array.' };
+    }
+
+    // Remove creator if present
+    participantIds = participantIds.filter((id) => id !== userId);
+
+    if (participantIds.length < 1) {
+      return { success: false, message: 'Group chat must include at least one participant (other than yourself).' };
+    }
+
+    
+
+    try {
+      const chat = await DBService.performTransaction(async (transaction) => {
+        // Create a new group chat
+        const chat = await chatRepository.createChat(
+          {
+            userId,
+            isGroup: true,
+            name,
+          },
+          { transaction }
+        );
+  
+        // Add the creator
+        await chatMemberRepository.createChatMember({ chatId: chat.id, userId }, { transaction });
+  
+        // Add participants
+        for (const participantId of participantIds) {
+          await chatMemberRepository.createChatMember({ chatId: chat.id, userId: participantId }, { transaction });
+        }
+  
+        // Add first message
+        const newMessage = await messageRepository.createMessage(
+          { chatId: chat.id, senderUserId: userId, content: message },
+          { transaction }
+        );
+  
+        await messageStatusRepository.createMessageStatus(
+          { messageId: newMessage.id, userId, status: 'sent' },
+          { transaction }
+        );
+  
+        return chat;
+      });
+  
+      return {
+        success: true,
+        message: 'Group chat created successfully.',
+        chat,
+      };
+  
+    } catch (err) {
+      console.error('Group chat creation failed:', err);
+      return {
+        success: false,
+        message: 'Failed to create group chat.',
+      };
+    }
+  };
+  
 const createChat = async (data) => {
   console.log('🔄 createChat called', data);
   const { userId, participantId, message } = data;
 
-  return await DBService.performTransaction(async (transaction) => {
-    // Step 1: Check if a 1:1 chat already exists between these two users
-    const existingChat = await chatRepository.findOneToOneChat(userId, participantId);
+  if (!participantId) {
+    return { success: false, message: 'Participant ID is required for 1:1 chat.' };
+  }
 
-    if (existingChat) {
-      // 1:1 chat already exists, create a message in the existing chat
+  try {
+    const chat = await DBService.performTransaction(async (transaction) => {
+      // Step 1: Check if a 1:1 chat already exists between these two users
+      const existingChat = await chatRepository.findOneToOneChat(userId, participantId);
+
+      if (existingChat) {
+        // Create a message in the existing chat
+        const newMessage = await messageRepository.createMessage(
+          { chatId: existingChat.id, senderUserId: userId, content: message },
+          { transaction }
+        );
+
+        await messageStatusRepository.createMessageStatus(
+          { messageId: newMessage.id, userId, status: 'sent' },
+          { transaction }
+        );
+
+        return existingChat;
+      }
+
+      // Step 2: Create a new 1:1 chat
+      const chat = await chatRepository.createChat(
+        { userId, isGroup: false },
+        { transaction }
+      );
+
+      // Step 3: Add both users to ChatMembers
+      await chatMemberRepository.createChatMember({ chatId: chat.id, userId }, { transaction });
+      await chatMemberRepository.createChatMember({ chatId: chat.id, userId: participantId }, { transaction });
+
+      // Step 4: Create the first message
       const newMessage = await messageRepository.createMessage(
-        { chatId: existingChat.id, senderUserId: userId, content: message },
+        { chatId: chat.id, senderUserId: userId, content: message },
         { transaction }
       );
 
@@ -50,33 +159,24 @@ const createChat = async (data) => {
         { transaction }
       );
 
-      return existingChat;
-    }
+      return chat;
+    });
 
-    // Step 2: Create a new 1:1 chat
-    const chat = await chatRepository.createChat(
-      { userId, isGroup: false }, // only userId needed here
-      { transaction }
-    );
+    return {
+      success: true,
+      message: '1:1 chat created successfully.',
+      chat,
+    };
 
-    // Step 3: Add both users to ChatMembers
-    await chatMemberRepository.createChatMember({ chatId: chat.id, userId }, { transaction });
-    await chatMemberRepository.createChatMember({ chatId: chat.id, userId: participantId }, { transaction });
-
-    // Step 4: Create the first message
-    const newMessage = await messageRepository.createMessage(
-      { chatId: chat.id, senderUserId: userId, content: message },
-      { transaction }
-    );
-
-    await messageStatusRepository.createMessageStatus(
-      { messageId: newMessage.id, userId, status: 'sent' },
-      { transaction }
-    );
-
-    return chat;
-  });
+  } catch (err) {
+    console.error('1:1 chat creation failed:', err);
+    return {
+      success: false,
+      message: 'Failed to create 1:1 chat.',
+    };
+  }
 };
+
 
 //@desc    get a chat
 //@route   GET /conversations/:id
@@ -188,6 +288,7 @@ const sendMessage = async ({ chatId, userId, ...data }) => {
 
 
 module.exports = {
+  createGroupChat,
   createChat,
   getChat,
   getChats,
