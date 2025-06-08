@@ -15,8 +15,15 @@ import {
   Alert,
   Button,
   Divider,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
-import { Message as MessageIcon, Schedule as ScheduleIcon } from '@mui/icons-material';
+import { 
+  Message as MessageIcon, 
+  Schedule as ScheduleIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import { useChat } from '../context/chatContext';
@@ -35,10 +42,35 @@ const Chats = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [pageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Create the isUserOnline function locally
   const isUserOnline = (userId) => {
     return onlineUsers.has(userId);
+  };
+
+  // Filter chats based on search query
+  const filteredChats = chats.filter(chat => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerm = searchQuery.toLowerCase().trim();
+    const firstName = chat.firstName?.toLowerCase() || '';
+    const lastName = chat.lastName?.toLowerCase() || '';
+    const fullName = `${firstName} ${lastName}`.toLowerCase();
+    
+    return firstName.includes(searchTerm) || 
+           lastName.includes(searchTerm) || 
+           fullName.includes(searchTerm);
+  });
+
+  // Handle search input change
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchQuery('');
   };
 
   // Fetch chats from API
@@ -246,7 +278,7 @@ const Chats = () => {
                 fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
               }}
             >
-              Chats ({chats.length})
+              Chats ({filteredChats.length})
             </Typography>
           </Box>
           
@@ -286,20 +318,140 @@ const Chats = () => {
           </Box>
         </Box>
 
+        {/* Search Section */}
+        <Box sx={{ 
+          p: { xs: 2, sm: 3, md: 4 }, 
+          pb: { xs: 1, sm: 2, md: 2 },
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)' 
+        }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+            <TextField
+              fullWidth
+              placeholder="Search users by name..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              variant="outlined"
+              size="medium"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchQuery && (
+                  <InputAdornment position="end">
+                    <Button
+                      onClick={handleClearSearch}
+                      sx={{ 
+                        minWidth: 'auto', 
+                        p: 0.5,
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        '&:hover': {
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        }
+                      }}
+                    >
+                      <ClearIcon fontSize="small" />
+                    </Button>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: 2,
+                  '& fieldset': {
+                    borderColor: 'rgba(142, 45, 226, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(142, 45, 226, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#8E2DE2',
+                    borderWidth: 2,
+                  },
+                },
+                '& .MuiOutlinedInput-input': {
+                  color: 'white',
+                  fontSize: '1rem',
+                  '&::placeholder': {
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    opacity: 1,
+                  },
+                },
+              }}
+            />
+            
+            {/* Find Button */}
+            <Button
+              variant="contained"
+              sx={{
+                minWidth: '56px',
+                height: '56px',
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, #8E2DE2 0%, #4A148C 100%)',
+                boxShadow: '0 4px 12px rgba(142, 45, 226, 0.3)',
+                border: '1px solid rgba(142, 45, 226, 0.4)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #9C27B0 0%, #6A1B9A 100%)',
+                  boxShadow: '0 6px 16px rgba(142, 45, 226, 0.4)',
+                  transform: 'translateY(-1px)',
+                },
+                '&:active': {
+                  transform: 'translateY(0px)',
+                  boxShadow: '0 2px 8px rgba(142, 45, 226, 0.3)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+              onClick={() => {
+                // Focus the search input when find button is clicked
+                const searchInput = document.querySelector('input[placeholder="Search users by name..."]');
+                if (searchInput) {
+                  searchInput.focus();
+                }
+              }}
+            >
+              <SearchIcon sx={{ 
+                color: 'white', 
+                fontSize: '1.5rem',
+                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
+              }} />
+            </Button>
+          </Box>
+          
+          {searchQuery && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'rgba(255, 255, 255, 0.6)',
+                mt: 1,
+                display: 'block',
+                fontSize: '0.75rem',
+              }}
+            >
+              {filteredChats.length} user{filteredChats.length !== 1 ? 's' : ''} found
+            </Typography>
+          )}
+        </Box>
+
         {/* Chats List */}
         <Box sx={{ p: 0 }}>
-          {chats.length === 0 ? (
+          {filteredChats.length === 0 && !loading ? (
             <Box sx={{ textAlign: 'center', py: 6 }}>
               <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 1 }}>
-                No chats found
+                {searchQuery ? 'No users found' : 'No chats found'}
               </Typography>
               <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                Start a conversation to see your chats here
+                {searchQuery 
+                  ? `Try searching for a different name` 
+                  : 'Start a conversation to see your chats here'
+                }
               </Typography>
             </Box>
           ) : (
             <List sx={{ width: '100%', bgcolor: 'transparent', p: 0 }}>
-              {chats.map((chat, index) => (
+              {filteredChats.map((chat, index) => (
                 <React.Fragment key={chat.id}>
                   <ListItem
                     sx={{
@@ -495,7 +647,7 @@ const Chats = () => {
                     )}
                   </ListItem>
                   
-                  {index < chats.length - 1 && (
+                  {index < filteredChats.length - 1 && (
                     <Divider 
                       sx={{ 
                         mx: { xs: 2, sm: 3, md: 4 },
@@ -509,7 +661,7 @@ const Chats = () => {
           )}
 
           {/* Load More Button */}
-          {hasMore && chats.length > 0 && (
+          {hasMore && filteredChats.length > 0 && (
             <Box sx={{ 
               p: { xs: 2, sm: 3, md: 4 }, 
               pt: { xs: 3, md: 4 },
