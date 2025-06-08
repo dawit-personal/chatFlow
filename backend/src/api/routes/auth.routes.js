@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
-const { validate } = require('../../utils/validators'); // Import generic validate middleware
-const { registerSchema, loginSchema } = require('../../middlewares/validation/auth.validation'); // Import specific schema
+const { validate } = require('../../utils/validators'); 
+const { registerSchema, loginSchema } = require('../../middlewares/validation/auth.validation'); 
 
 // @route   POST /auth/register
 // @desc    Register a new user
