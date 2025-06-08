@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Chats from './pages/Chats';
 import Message from './pages/Message';
+import CreateGroupName from './pages/CreateGroupName';
+import CreateGroupParticipants from './pages/CreateGroupParticipants';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -67,6 +69,16 @@ function App() {
         <Route path="/message/:chatId" element={
           <ProtectedRoute>
             <Message />
+          </ProtectedRoute>
+        } />
+        <Route path="/create-group" element={
+          <ProtectedRoute>
+            <CreateGroupName />
+          </ProtectedRoute>
+        } />
+        <Route path="/create-group/participants" element={
+          <ProtectedRoute>
+            <CreateGroupParticipants />
           </ProtectedRoute>
         } />
       </Routes>

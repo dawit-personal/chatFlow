@@ -17,13 +17,16 @@ import {
   Divider,
   TextField,
   InputAdornment,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import { 
   Message as MessageIcon, 
   Schedule as ScheduleIcon,
   Search as SearchIcon,
   Clear as ClearIcon,
-  ChatBubble as ChatBubbleIcon
+  ChatBubble as ChatBubbleIcon,
+  GroupAdd as GroupAddIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
@@ -422,14 +425,14 @@ const Chats = () => {
             </Typography>
           </Box>
           
-          {/* Connection Status Indicator */}
+          {/* Connection Status Indicator and Create Group Button */}
           <Box sx={{ 
             position: 'absolute', 
             top: { xs: 10, md: 20 }, 
             right: { xs: 10, md: 20 },
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
+            gap: 2,
           }}>
             <Box
               sx={{
@@ -455,6 +458,11 @@ const Chats = () => {
             >
               {isConnected ? 'Online' : 'Connecting...'}
             </Typography>
+            <Tooltip title="Create Group Chat">
+              <IconButton color="secondary" onClick={() => navigate('/create-group')}>
+                <GroupAddIcon sx={{ color: 'white' }} />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
 
