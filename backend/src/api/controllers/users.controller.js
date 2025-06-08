@@ -24,7 +24,7 @@ async function getMe(req, res, next) {
 
 async function searchByFirstName(req, res, next) {
     const { firstName } = req.body;
-    const users = await userService.searchByFirstName(firstName);
+    const users = await userService.searchByFirstName(firstName, ['firstName']);
     res.json(users);
 }
 

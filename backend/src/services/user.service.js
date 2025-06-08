@@ -13,8 +13,8 @@ const getUserById = async (userId) => {
   return safeUser;
 };
 
-const searchByFirstName = async (firstName) => {
-  const users = await userProfileRepository.findAllUsersByFirstName(firstName);
+const searchByFirstName = async (firstName, attributes = null) => {
+  const users = await userProfileRepository.findAllUsersByFirstName(firstName, ['firstName']);
   return users;
 }
 

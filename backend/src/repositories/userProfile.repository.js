@@ -52,13 +52,15 @@ class UserProfileRepository {
     });
   }
 
-  async findAllUsersByFirstName(firstName) {
+  async findAllUsersByFirstName(firstName, attributes = null) {
     return await UserProfile.findAll({
       where: {
         firstName: {
           [Op.iLike]: `%${firstName}%`, 
         },
       },
+      attributes: attributes || null,
+      raw: true,
     });
   }
 }
