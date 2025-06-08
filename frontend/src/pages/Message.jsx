@@ -27,7 +27,7 @@ const Message = () => {
   const navigate = useNavigate();
   const { chatId } = useParams();
   const { accessToken, user } = useAuth();
-  const { onlineUsers } = useChat();
+  const { onlineUsers, socket, sendMessage: sendSocketMessage } = useChat();
   
   // State management
   const [messages, setMessages] = useState([]);
@@ -137,6 +137,75 @@ const Message = () => {
     fetchChatData();
   }, [chatId, accessToken]);
 
+  // Listen for real-time messages
+  useEffect(() => {
+    if (!socket) {
+      console.log('🔌 Message Debug - No socket available for message listening');
+      return;
+    }
+
+    console.log('🔌 Message Debug - Setting up message listener for chat:', chatId);
+
+    const handleReceiveMessage = (messageData) => {
+      console.log('🔌 Message Debug - Received real-time message:', messageData);
+      console.log('🔌 Message Debug - Current chat ID:', chatId);
+      console.log('🔌 Message Debug - Message chat ID:', messageData.chatId);
+      
+      // Only add message if it belongs to the current chat
+      if (messageData.chatId && messageData.chatId.toString() === chatId.toString()) {
+        console.log('🔌 Message Debug - Message belongs to current chat, adding to UI');
+        
+        // Transform the received message to match our UI format
+        const transformedMessage = {
+          id: messageData.id || messageData.messageId || Date.now(),
+          content: messageData.content || messageData.text,
+          senderId: messageData.senderId,
+          recipientId: messageData.recipientId,
+          timestamp: new Date(messageData.timestamp || Date.now()),
+          isMe: messageData.senderId === user?.userId,
+          isRead: false, // New received messages are unread
+          messageType: 'text',
+          senderName: messageData.senderName || 'Unknown',
+          senderFirstName: messageData.senderFirstName || 'Unknown',
+          senderLastName: messageData.senderLastName || '',
+        };
+
+        console.log('🔌 Message Debug - Transformed message:', transformedMessage);
+
+        // Add message to state (with deduplication)
+        setMessages(prevMessages => {
+          // Check if message already exists
+          const messageExists = prevMessages.some(msg => 
+            msg.id === transformedMessage.id || 
+            (msg.content === transformedMessage.content && 
+             msg.senderId === transformedMessage.senderId &&
+             Math.abs(new Date(msg.timestamp) - new Date(transformedMessage.timestamp)) < 1000)
+          );
+
+          if (messageExists) {
+            console.log('🔌 Message Debug - Message already exists, skipping duplicate');
+            return prevMessages;
+          }
+
+          console.log('🔌 Message Debug - Adding new message to chat UI');
+          return [...prevMessages, transformedMessage];
+        });
+      } else {
+        console.log('🔌 Message Debug - Message not for current chat, ignoring');
+      }
+    };
+
+    // Register the event listener
+    socket.on('receive_message', handleReceiveMessage);
+    console.log('🔌 Message Debug - Registered receive_message listener for chat:', chatId);
+
+    // Cleanup function
+    return () => {
+      console.log('🔌 Message Debug - Cleaning up message listener for chat:', chatId);
+      socket.off('receive_message', handleReceiveMessage);
+    };
+  }, [socket, chatId, user?.userId]); // Dependencies: re-run when socket, chatId, or user changes
+
   // Send message
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sending) return;
@@ -147,6 +216,8 @@ const Message = () => {
       id: Date.now(), // Temporary ID
       content: newMessage.trim(),
       senderId: currentUserId,
+      recipientId: otherUserId, // Add recipient ID
+      chatId: chatId, // Add chat ID
       timestamp: new Date(),
       isMe: true,
       isRead: false, // New messages start as unread
@@ -155,12 +226,25 @@ const Message = () => {
 
     try {
       setSending(true);
+      console.log('🔌 Message Debug - Starting message send process');
 
       // Add message to list immediately (optimistic update)
       setMessages(prev => [...prev, messageObj]);
       setNewMessage('');
 
-      // Send message to API
+      // Send message via socket for real-time delivery
+      if (socket && otherUserId) {
+        console.log('🔌 Message Debug - Sending via socket to:', otherUserId);
+        const socketResult = sendSocketMessage(chatId, otherUserId, newMessage.trim());
+        if (!socketResult.success) {
+          console.warn('🔌 Message Debug - Socket send failed:', socketResult.reason);
+        }
+      } else {
+        console.warn('🔌 Message Debug - Socket not available or no recipient ID');
+      }
+
+      // Send message to API for persistence
+      console.log('🔌 Message Debug - Sending to API for persistence');
       const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
       const response = await axios.post(`${API_ENDPOINT}/conversations/${chatId}/messages`, {
         content: newMessage.trim(),
@@ -168,13 +252,15 @@ const Message = () => {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       
+      console.log('🔌 Message Debug - API response received:', response.data);
+      
       // Update the message with real ID from server
       setMessages(prev => prev.map(msg => 
         msg.id === messageObj.id ? { ...msg, id: response.data.id } : msg
       ));
 
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('🔌 Message Debug - Failed to send message:', error);
       // Remove the message if sending failed
       setMessages(prev => prev.filter(msg => msg.id !== messageObj.id));
       setError('Failed to send message. Please try again.');
@@ -339,9 +425,9 @@ const Message = () => {
               gap: 1,
             }}
           >
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <Box
-                key={message.id}
+                key={message.id || `message-${index}-${message.timestamp}`}
                 sx={{
                   display: 'flex',
                   justifyContent: message.isMe ? 'flex-end' : 'flex-start',

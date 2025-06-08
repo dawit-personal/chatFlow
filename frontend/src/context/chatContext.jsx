@@ -22,7 +22,9 @@ export const ChatProvider = ({ children }) => {
     }
 
     const SERVER_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
-    console.log('Connecting to socket server at:', SERVER_URL);
+    console.log('🔌 Socket Debug - Attempting connection to:', SERVER_URL);
+    console.log('🔌 Socket Debug - User ID:', user.userId);
+    console.log('🔌 Socket Debug - Access Token exists:', !!accessToken);
 
     // Create socket connection
     const newSocket = io(SERVER_URL, {
@@ -34,34 +36,36 @@ export const ChatProvider = ({ children }) => {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,//increases the delay gradually after each failed attempt upto 5 sec
+      reconnectionDelayMax: 5000,
     });
 
     // --- Event Handlers ---
 
     // Fires when successfully connected
     const handleConnect = () => {
-      console.log('Connected to socket');
+      console.log('🔌 Socket Debug - Connected successfully! Socket ID:', newSocket.id);
       setIsConnected(true);
-      newSocket.emit('create_new_chat', user.userId); // Notify server who joined
-      newSocket.emit('get_online_users'); // Request initial online users
+      console.log('🔌 Socket Debug - Emitting create_new_chat with userId:', user.userId);
+      newSocket.emit('create_new_chat', user.userId);
+      console.log('🔌 Socket Debug - Requesting online users');
+      newSocket.emit('get_online_users');
     };
 
     // Fires when disconnected
-    const handleDisconnect = () => {
-      console.log('Disconnected from socket');
+    const handleDisconnect = (reason) => {
+      console.log('🔌 Socket Debug - Disconnected. Reason:', reason);
       setIsConnected(false);
     };
 
     // Fires on connection failure
     const handleConnectError = (error) => {
-      console.error('Socket connection error:', error);
+      console.error('🔌 Socket Debug - Connection error:', error);
       setIsConnected(false);
     };
 
     // Online user list received from server
     const handleOnlineUsers = (users) => {
-      console.log('Received online users:', users);
+      console.log('🔌 Socket Debug - Received online users:', users);
       const online = new Set(users.map(u => u.userId));
       setOnlineUsers(online);
     };
@@ -83,6 +87,7 @@ export const ChatProvider = ({ children }) => {
 
     // Handle new incoming message
     const handleNewMessage = (message) => {
+      console.log('🔌 Socket Debug - Received new message:', message);
       const { chatId } = message;
       setActiveChats(prev => {
         const updated = new Map(prev);
@@ -115,13 +120,14 @@ export const ChatProvider = ({ children }) => {
     };
 
     // --- Register socket event listeners ---
+    console.log('🔌 Socket Debug - Registering event listeners');
     newSocket.on('connect', handleConnect);
     newSocket.on('disconnect', handleDisconnect);
     newSocket.on('connect_error', handleConnectError);
     newSocket.on('get_online_users', handleOnlineUsers);
     newSocket.on('user_online', handleUserOnline);
     newSocket.on('user_offline', handleUserOffline);
-    newSocket.on('new_message', handleNewMessage);
+    newSocket.on('receive_message', handleNewMessage);
     newSocket.on('message_read', handleMessageRead);
     newSocket.on('typing_start', handleTypingStart);
     newSocket.on('typing_stop', handleTypingStop);
@@ -147,7 +153,7 @@ export const ChatProvider = ({ children }) => {
       newSocket.off('get_online_users', handleOnlineUsers);
       newSocket.off('user_online', handleUserOnline);
       newSocket.off('user_offline', handleUserOffline);
-      newSocket.off('new_message', handleNewMessage);
+      newSocket.off('receive_message', handleNewMessage);
       newSocket.off('message_read', handleMessageRead);
       newSocket.off('typing_start', handleTypingStart);
       newSocket.off('typing_stop', handleTypingStop);
