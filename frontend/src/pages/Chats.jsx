@@ -246,30 +246,48 @@ const Chats = () => {
 
       if (response.data && response.data.data) {
         // Transform API data to match UI expectations
-        const transformedChats = response.data.data.map(chatMember => ({
-          id: chatMember.chatId, // Use chatId as the main identifier for navigation
-          memberId: chatMember.id, // Keep member ID if needed
-          name: `Chat ${chatMember.chatId}`, // Fallback name for groups
-          firstName: chatMember.user?.profile?.firstName || 'Unknown',
-          lastName: chatMember.user?.profile?.lastName || 'User',
-          email: chatMember.user?.email || 'No email',
-          lastMessage: 'No messages yet',
-          timestamp: new Date(chatMember.joinedAt).toLocaleString('en-US', { 
-            month: 'short', 
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          }),
-          joinedAt: chatMember.joinedAt,
-          unreadCount: 0, // API doesn't provide this
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${chatMember.user?.profile?.firstName || 'User'}&backgroundColor=8E2DE2`,
-          isOnline: isUserOnline(chatMember.userId), // Use real online status from chat context
-          lastSeen: isUserOnline(chatMember.userId) ? 'Active now' : 'Last seen recently', // Real status-based message
-          isGroup: false, // This endpoint seems to return individual chat members
-          userId: chatMember.userId,
-          user: chatMember.user, // Keep full user object if needed
-        }));
+        const transformedChats = response.data.data.map(chat => {
+          if (chat.isGroup) {
+            // Group chat
+            return {
+              id: chat.id || chat.chatId, // Use id for group, fallback to chatId
+              name: chat.name || 'Group Chat',
+              isGroup: true,
+              avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(chat.name || 'Group')}&backgroundColor=8E2DE2`,
+              lastMessage: 'No messages yet',
+              timestamp: 'N/A',
+              unreadCount: 0,
+              isOnline: false,
+              lastSeen: '',
+            };
+          } else {
+            // 1:1 chat
+            return {
+              id: chat.chatId, // Use chatId as the main identifier for navigation
+              memberId: chat.id, // Keep member ID if needed
+              name: `Chat ${chat.chatId}`,
+              firstName: chat.user?.profile?.firstName || 'Unknown',
+              lastName: chat.user?.profile?.lastName || 'User',
+              email: chat.user?.email || 'No email',
+              lastMessage: 'No messages yet',
+              timestamp: chat.joinedAt ? new Date(chat.joinedAt).toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              }) : 'Invalid Date',
+              joinedAt: chat.joinedAt,
+              unreadCount: 0, // API doesn't provide this
+              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${chat.user?.profile?.firstName || 'User'}&backgroundColor=8E2DE2`,
+              isOnline: isUserOnline(chat.userId), // Use real online status from chat context
+              lastSeen: isUserOnline(chat.userId) ? 'Active now' : 'Last seen recently', // Real status-based message
+              isGroup: false, // This endpoint seems to return individual chat members
+              userId: chat.userId,
+              user: chat.user, // Keep full user object if needed
+            };
+          }
+        });
 
         if (append) {
           setChats(prevChats => [...prevChats, ...transformedChats]);
@@ -624,12 +642,12 @@ const Chats = () => {
                         variant="dot"
                         sx={{
                           '& .MuiBadge-badge': {
-                            backgroundColor: chat.isOnline ? '#4CAF50' : '#757575',
+                            backgroundColor: chat.isGroup ? '#8E2DE2' : (chat.isOnline ? '#4CAF50' : '#757575'),
                             width: 14,
                             height: 14,
                             borderRadius: '50%',
                             border: '3px solid rgba(45, 45, 45, 0.95)',
-                            boxShadow: chat.isOnline ? '0 0 0 2px rgba(76, 175, 80, 0.3)' : 'none',
+                            boxShadow: chat.isGroup ? '0 0 0 2px rgba(142, 45, 226, 0.3)' : (chat.isOnline ? '0 0 0 2px rgba(76, 175, 80, 0.3)' : 'none'),
                           },
                         }}
                       >
@@ -640,8 +658,11 @@ const Chats = () => {
                             height: { xs: 48, md: 56 },
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                             filter: chat.isOnline ? 'none' : 'grayscale(20%)',
+                            backgroundColor: chat.isGroup ? '#8E2DE2' : undefined,
                           }}
-                        />
+                        >
+                          {chat.isGroup ? <GroupAddIcon sx={{ color: 'white' }} /> : null}
+                        </Avatar>
                       </Badge>
                     </ListItemAvatar>
                     
@@ -701,6 +722,7 @@ const Chats = () => {
                                 '& .MuiChip-label': {
                                   px: 1,
                                 },
+                                ml: 1,
                               }}
                             />
                           )}
@@ -734,63 +756,63 @@ const Chats = () => {
                             {chat.isSearchResult ? 'Click Add to start a conversation' : chat.lastMessage}
                           </Typography>
                           {!chat.isSearchResult && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <ScheduleIcon sx={{ 
-                                  fontSize: '0.875rem', 
-                                  color: 'rgba(255, 255, 255, 0.4)' 
-                                }} />
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <ScheduleIcon sx={{ 
+                                fontSize: '0.875rem', 
+                                color: 'rgba(255, 255, 255, 0.4)' 
+                              }} />
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: 'rgba(255, 255, 255, 0.4)',
+                                  fontSize: { xs: '0.75rem', md: '0.8rem' },
+                                  fontWeight: 400,
+                                }}
+                              >
+                                Joined {chat.timestamp}
+                              </Typography>
+                            </Box>
+                            {!chat.isOnline && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: 'rgba(255, 255, 255, 0.5)',
+                                  fontSize: { xs: '0.7rem', md: '0.75rem' },
+                                  fontStyle: 'italic',
+                                }}
+                              >
+                                {chat.lastSeen}
+                              </Typography>
+                            )}
+                            {chat.isOnline && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                                <Box
+                                  sx={{
+                                    width: 6,
+                                    height: 6,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#4CAF50',
+                                    animation: 'blink 1.5s infinite',
+                                    '@keyframes blink': {
+                                      '0%, 50%': { opacity: 1 },
+                                      '51%, 100%': { opacity: 0.3 },
+                                    },
+                                  }}
+                                />
                                 <Typography
                                   variant="caption"
                                   sx={{
-                                    color: 'rgba(255, 255, 255, 0.4)',
-                                    fontSize: { xs: '0.75rem', md: '0.8rem' },
-                                    fontWeight: 400,
+                                    color: '#4CAF50',
+                                    fontSize: { xs: '0.7rem', md: '0.75rem' },
+                                    fontWeight: 500,
                                   }}
                                 >
-                                  Joined {chat.timestamp}
+                                  Active now
                                 </Typography>
                               </Box>
-                              {!chat.isOnline && (
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    color: 'rgba(255, 255, 255, 0.5)',
-                                    fontSize: { xs: '0.7rem', md: '0.75rem' },
-                                    fontStyle: 'italic',
-                                  }}
-                                >
-                                  {chat.lastSeen}
-                                </Typography>
-                              )}
-                              {chat.isOnline && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
-                                  <Box
-                                    sx={{
-                                      width: 6,
-                                      height: 6,
-                                      borderRadius: '50%',
-                                      backgroundColor: '#4CAF50',
-                                      animation: 'blink 1.5s infinite',
-                                      '@keyframes blink': {
-                                        '0%, 50%': { opacity: 1 },
-                                        '51%, 100%': { opacity: 0.3 },
-                                      },
-                                    }}
-                                  />
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      color: '#4CAF50',
-                                      fontSize: { xs: '0.7rem', md: '0.75rem' },
-                                      fontWeight: 500,
-                                    }}
-                                  >
-                                    Active now
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Box>
+                            )}
+                          </Box>
                           )}
                         </Box>
                       }
@@ -830,19 +852,19 @@ const Chats = () => {
                       </ListItemSecondaryAction>
                     ) : (
                       chat.unreadCount > 0 && (
-                        <ListItemSecondaryAction>
-                          <Badge
-                            badgeContent={chat.unreadCount}
-                            sx={{
-                              '& .MuiBadge-badge': {
-                                backgroundColor: '#8E2DE2',
-                                color: 'white',
-                                fontWeight: 600,
-                                fontSize: '0.7rem',
-                              },
-                            }}
-                          />
-                        </ListItemSecondaryAction>
+                      <ListItemSecondaryAction>
+                        <Badge
+                          badgeContent={chat.unreadCount}
+                          sx={{
+                            '& .MuiBadge-badge': {
+                              backgroundColor: '#8E2DE2',
+                              color: 'white',
+                              fontWeight: 600,
+                              fontSize: '0.7rem',
+                            },
+                          }}
+                        />
+                      </ListItemSecondaryAction>
                       )
                     )}
                   </ListItem>
