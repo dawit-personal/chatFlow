@@ -1,4 +1,5 @@
 const { UserProfile , User } = require('../../db/models');
+const { Op } = require('sequelize');
 
 class UserProfileRepository {
   async createUserProfile(data, options = {}) {
@@ -48,6 +49,16 @@ class UserProfileRepository {
         },
       ],
       raw: true,
+    });
+  }
+
+  async findAllUsersByFirstName(firstName) {
+    return await UserProfile.findAll({
+      where: {
+        firstName: {
+          [Op.iLike]: `%${firstName}%`, 
+        },
+      },
     });
   }
 }

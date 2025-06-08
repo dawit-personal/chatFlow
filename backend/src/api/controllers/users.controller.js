@@ -22,7 +22,14 @@ async function getMe(req, res, next) {
     }
 }
 
+async function searchByFirstName(req, res, next) {
+    const { firstName } = req.body;
+    const users = await userService.searchByFirstName(firstName);
+    res.json(users);
+}
+
 
 module.exports = {
-   getMe
+   getMe,
+   searchByFirstName,
 }; 

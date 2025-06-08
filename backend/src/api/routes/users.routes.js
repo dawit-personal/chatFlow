@@ -7,5 +7,7 @@ const authenticate = require('../../middlewares/auth/auth.middleware');
 // @access  Private
 router.get('/me', authenticate,usersController.getMe);
 
+router.post('/search', authenticate, usersController.searchByFirstName);
+
 
 module.exports = router; 

@@ -13,6 +13,12 @@ const getUserById = async (userId) => {
   return safeUser;
 };
 
+const searchByFirstName = async (firstName) => {
+  const users = await userProfileRepository.findAllUsersByFirstName(firstName);
+  return users;
+}
+
 module.exports = {
   getUserById,
+  searchByFirstName,
 };
