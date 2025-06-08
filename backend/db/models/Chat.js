@@ -9,6 +9,13 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'userId',
         as: 'creator',
       });
+
+      Chat.hasMany(models.ChatMember, {
+        foreignKey: 'chatId',
+        as: 'members', // This must match the alias used in the `include`!
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      });
     }
   }
 

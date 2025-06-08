@@ -6,11 +6,11 @@ import { AuthProvider } from './context/authContext.jsx'
 import { ChatProvider } from './context/chatContext.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+
       <AuthProvider>
         <ChatProvider>
           <App />
         </ChatProvider>
       </AuthProvider>
-  </StrictMode>,
+
 )

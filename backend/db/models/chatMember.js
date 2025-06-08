@@ -11,6 +11,8 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
       });
 
+      
+
       ChatMember.belongsTo(models.Chat, {
         foreignKey: 'chatId',
         as: 'chat',

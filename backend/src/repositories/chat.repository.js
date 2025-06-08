@@ -1,4 +1,4 @@
-const { Chat } = require('../../db/models');
+const { Chat, ChatMember } = require('../../db/models');
 
 class ChatRepository {
   async createChat(data, options = {}) {
@@ -42,6 +42,17 @@ class ChatRepository {
       limit,
       order: [['updatedAt', 'DESC']],
       raw: true,
+    });
+  }
+
+  async findOneToOneChat(userId, participantId) {
+    return await Chat.findOne({
+      where: { userId },
+      include: [{
+        model: ChatMember,
+        as: 'members',
+        where: { userId: participantId }
+      }]
     });
   }
 }

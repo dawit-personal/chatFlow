@@ -58,13 +58,16 @@ const Chats = () => {
       }
 
       const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
-      const offset = (pageNum - 1) * pageSize;
+      //const offset = (pageNum - 1) * pageSize;
       
-      const response = await axios.get(`${API_ENDPOINT}/conversations?offset=${offset}&limit=${pageSize}`, {
+      
+      const response = await axios.get(`${API_ENDPOINT}/conversations?page=${pageNum}&pageSize=${pageSize}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+
+      console.log('🔄 response', response.data);
 
       if (response.data && response.data.data) {
         // Transform API data to match UI expectations
