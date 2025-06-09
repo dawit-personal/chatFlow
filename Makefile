@@ -1,4 +1,4 @@
-.PHONY: up build down volume-clean migrate-create migrate-up migrate-down migrate-down-step test logs logs-top100 repository docker-npm-install branch add commit rebase push check-kill-port
+.PHONY: up build down status volume-clean migrate-create migrate-up migrate-down migrate-down-step test logs logs-top100 repository docker-npm-install branch add commit rebase push check-kill-port
 
 
 # Default target: bring up the services and build if necessary
@@ -17,6 +17,12 @@ build: up
 down:
 	@echo "Stopping Docker services..."
 	docker compose down
+
+# Show status of running Docker containers
+# Usage: make status
+status:
+	@echo "Checking running Docker containers..."
+	docker compose ps
 
 # Clean up volumes
 # Usage: make volume-clean
@@ -132,7 +138,7 @@ push:
 
 check-kill-port:
 	@echo "🔍 Checking port usage..."
-	@for port in 4000 5000 5173; do \
+	@for port in 4000 5000 5173 5432; do \
 		echo "\n🔎 Port $$port:"; \
 		if lsof -i :$$port > /dev/null; then \
 			lsof -i :$$port; \
@@ -144,11 +150,13 @@ check-kill-port:
 	echo "1) 4000"; \
 	echo "2) 5000"; \
 	echo "3) 5173"; \
-	read -p "Enter option number (1-3): " option; \
+	echo "4) 5432"; \
+	read -p "Enter option number (1-4): " option; \
 	case $$option in \
 		1) port=4000 ;; \
 		2) port=5000 ;; \
 		3) port=5173 ;; \
+		4) port=5432 ;; \
 		*) echo "❌ Invalid option"; exit 1 ;; \
 	esac; \
 	echo "🔪 Killing processes on port $$port..."; \

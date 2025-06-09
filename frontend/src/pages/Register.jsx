@@ -42,11 +42,11 @@ const validationSchema = yup.object({
   password: yup
     .string()
     .required('Password is required')
-    .min(12, 'Password must be at least 12 characters long')
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};"':\\|,.<>/?]).*$/,
-      'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*)'
-    ),
+    .min(6, 'Password must be at least 6 characters long'),
+    //.matches(
+    //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};"':\\|,.<>/?]).*$/,
+    //   'Password must include at least one uppercase letter, one lowercase letter, one number, and one special character (e.g., !@#$%^&*)'
+    // ),
   confirmPassword: yup
     .string()
     .required('Please confirm your password')
