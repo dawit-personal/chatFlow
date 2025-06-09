@@ -412,7 +412,7 @@ const Profile = () => {
           }}>
             <Box
               component="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/chats')}
               sx={{
                 px: { xs: 2, md: 4 },
                 py: { xs: 1, md: 2 },
