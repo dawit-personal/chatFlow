@@ -7,8 +7,9 @@ const registerSchema = Joi.object({
       'any.required': 'Email is required.'
     }),
     password: Joi.string()
-      .min(12)
-      .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};\'":\\\\|,.<>\\/?]).*$'))
+      //.min(12)
+      //.pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};\'":\\\\|,.<>\\/?]).*$'))
+      .min(6)
       .required()
       .messages({
         'string.min': 'Password must be at least 12 characters long.',
