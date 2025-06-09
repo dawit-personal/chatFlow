@@ -17,11 +17,13 @@ import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
+import { useChat } from '../context/chatContext';
 import axios from 'axios';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { accessToken, logout } = useAuth();
+  const { disconnectSocket } = useChat();
   
   // State for user data and loading
   const [userData, setUserData] = useState(null);
@@ -102,6 +104,7 @@ const Profile = () => {
       // Even if logout fails, clear local state
       console.error('Logout request failed:', error);
     } finally {
+      disconnectSocket(); // Disconnect socket on logout
       logout(); // Clear token from context/localStorage
       setLoggingOut(false);
       navigate('/login');

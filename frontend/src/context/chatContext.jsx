@@ -207,6 +207,17 @@ export const ChatProvider = ({ children }) => {
     return { success: true };
   };
 
+  // Add disconnectSocket function
+  const disconnectSocket = () => {
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+      setIsConnected(false);
+      setOnlineUsers(new Set());
+      setActiveChats(new Map());
+    }
+  };
+
   return (
     <ChatContext.Provider
       value={{
@@ -216,6 +227,7 @@ export const ChatProvider = ({ children }) => {
         activeChats,
         setActiveChats,
         sendMessage,
+        disconnectSocket,
       }}
     >
       {children}
