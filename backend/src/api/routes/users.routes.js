@@ -10,6 +10,9 @@ const { searchUserSchema } = require('../../middlewares/validation/user.validati
 // @access  Private
 router.get('/me', authenticate,usersController.getMe);
 
+// @route   POST /users/search
+// @desc    Search users by first name
+// @access  Private
 router.post('/search', authenticate, validate(searchUserSchema), usersController.searchByFirstName);
 
 

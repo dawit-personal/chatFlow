@@ -38,6 +38,13 @@ class UserLoginRepository {
       raw: true,
     });
   }
+
+  async genericUpdate(where = {}, updates = {}, options = {}) {
+    return await UserLogin.update(updates, {
+      where,
+      ...options,
+    });
+  }
 }
 
 module.exports = new UserLoginRepository();

@@ -49,7 +49,17 @@ async function login(req, res, next) {
     }
 }
 
+// @desc    Logout user
+// @route   POST /auth/logout
+// @access  Private
+async function logout(req, res, next) {
+    const accessToken = req.headers.authorization.split(' ')[1];
+    await authService.logoutUser(accessToken);
+    return res.status(200).json({ message: 'Logout successful' });
+}
+
 module.exports = {
     register,
     login,
+    logout,
 }; 

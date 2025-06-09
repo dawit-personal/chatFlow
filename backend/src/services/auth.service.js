@@ -81,7 +81,17 @@ async function loginUser(credentials, ipAddress, userAgent) {
   };
 }
 
+// @desc    Logout user
+// @route   POST /auth/logout
+// @access  Public
+async function logoutUser(accessToken) {
+  console.log('🔄 accessToken', accessToken);
+  const result = await userLoginRepository.genericUpdate({ accessToken }, { status: 'logged_out', accessToken: null });
+  return result;
+}
+
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
 };
