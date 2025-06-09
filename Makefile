@@ -1,4 +1,5 @@
-.PHONY: up build down migrate-up migrate-down logs logs-top100 test fresh-db
+.PHONY: up build down volume-clean migrate-create migrate-up migrate-down migrate-down-step test logs logs-top100 repository docker-npm-install branch add commit rebase push check-kill-port
+
 
 # Default target: bring up the services and build if necessary
 # Usage: make up
