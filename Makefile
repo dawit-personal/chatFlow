@@ -123,5 +123,44 @@ push:
 	@echo "Pushing to the remote..."
 	git push 
 
+# Usage:
+# Run `make check-kill-port` to:
+# 1. Display which of the common ports (4000, 5000, 5173) are in use
+# 2. Prompt you to choose one of them
+# 3. Kill the process using that port, if any
+
+check-kill-port:
+	@echo "🔍 Checking port usage..."
+	@for port in 4000 5000 5173; do \
+		echo "\n🔎 Port $$port:"; \
+		if lsof -i :$$port > /dev/null; then \
+			lsof -i :$$port; \
+		else \
+			echo "✅ Port $$port is free."; \
+		fi; \
+	done; \
+	echo "\nWhich port do you want to kill?"; \
+	echo "1) 4000"; \
+	echo "2) 5000"; \
+	echo "3) 5173"; \
+	read -p "Enter option number (1-3): " option; \
+	case $$option in \
+		1) port=4000 ;; \
+		2) port=5000 ;; \
+		3) port=5173 ;; \
+		*) echo "❌ Invalid option"; exit 1 ;; \
+	esac; \
+	echo "🔪 Killing processes on port $$port..."; \
+	pids=`lsof -ti :$$port`; \
+	if [ -z "$$pids" ]; then \
+		echo "✅ No processes found using port $$port."; \
+	else \
+		echo "Found process IDs: $$pids"; \
+		kill -9 $$pids; \
+		echo "✅ Killed processes on port $$port."; \
+	fi
+
+
+	
 # To make `make logs` and `make logs-top100` work without specifying SERVICE, define a default
 SERVICE := backend 
