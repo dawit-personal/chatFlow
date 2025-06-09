@@ -14,18 +14,20 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import EmailIcon from '@mui/icons-material/Email';
 import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import axios from 'axios';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { accessToken } = useAuth();
+  const { accessToken, logout } = useAuth();
   
   // State for user data and loading
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Fetch user data on component mount
   useEffect(() => {
@@ -80,6 +82,31 @@ const Profile = () => {
 
     fetchUserData();
   }, [navigate, accessToken]);
+
+  // Logout handler
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:4000';
+      await axios.post(
+        `${API_ENDPOINT}/auth/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    } catch (error) {
+      // Even if logout fails, clear local state
+      console.error('Logout request failed:', error);
+    } finally {
+      logout(); // Clear token from context/localStorage
+      setLoggingOut(false);
+      navigate('/login');
+    }
+  };
 
   // Loading state
   if (loading) {
@@ -215,19 +242,24 @@ const Profile = () => {
             </Box>
           </Box>
           
+          {/* Logout Button */}
           <IconButton
             sx={{
               position: 'absolute',
               top: { xs: 10, md: 20 },
-              right: { xs: 10, md: 20 },
+              right: { xs: 60, md: 70 },
               color: 'white',
-              backgroundColor: 'rgba(255,255,255,0.2)',
+              backgroundColor: 'rgba(244,67,54,0.7)',
+              ml: 1,
               '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.3)',
+                backgroundColor: 'rgba(244,67,54,0.9)',
               },
             }}
+            onClick={handleLogout}
+            disabled={loggingOut}
+            title="Logout"
           >
-            <EditIcon />
+            {loggingOut ? <CircularProgress size={22} sx={{ color: 'white' }} /> : <LogoutIcon />}
           </IconButton>
         </Box>
 
