@@ -1,4 +1,13 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
-npx lint-staged
+npx lint-staged || {
+  echo "❌ lint-staged failed!";
+  exit 1;
+}
+
+# Run tests
+npm run test:all || {
+  echo "❌ Tests failed!";
+  exit 1;
+}
