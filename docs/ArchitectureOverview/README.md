@@ -7,7 +7,7 @@
 Purpose: Real-time chat application (FlowChat) for users to exchange messages instantly.
 Scope: Monorepo with frontend, backend, rtc, PostgreSQL, and Docker Compose.
 
-FlowChat is a real-time chat application built as a monorepo with three services.
+FlowChat is a real-time chat application built as a monorepo with four services.
 
 - **Backend** Express.js for REST APIs
 - **Frontend** React + MUI for responsive, customizable UI
@@ -21,7 +21,7 @@ FlowChat is a real-time chat application built as a monorepo with three services
 
 - Built with Express.js using a layered architecture: routes, controllers, services, and singleton repositories for efficient database access.
 - Middleware handles CORS, JWT authentication, input validation, and rate limiting (express-rate-limit) to ensure security and reliability.
-- Provides REST APIs for frontend and interacts with the RTC service for real-time messaging.
+- Provides REST APIs for frontend 
 - Runs within Docker Compose for consistent development and deployment environments
 
 #### Frontend
@@ -32,7 +32,7 @@ FlowChat is a real-time chat application built as a monorepo with three services
 
 #### RTC
 
-- uilt with Socket.IO to handle real-time communication between users.
+- Built with Socket.IO to handle real-time communication between users.
 - Manages events such as send_message, user_online, etc..
 - Runs as a separate Docker service, enabling independent deployment and scaling.
 
